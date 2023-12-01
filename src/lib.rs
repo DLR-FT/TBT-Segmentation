@@ -40,8 +40,24 @@ use std::rc::Rc;
 use std::time::SystemTime;
 use stl::Stl;
 use table::Table;
-use tree::shipdeck_landing::get_trace_and_tree::get_trace;
-use tree::shipdeck_landing::get_trace_and_tree::get_tree;
+
+/*
+ * This trait must be implemented by the user.
+ * It is needed to provide a trace and a tree.
+ */
+struct UserProvidedFunction;
+
+trait ProvidesTraceAndTree {
+    fn get_trace(logfile: &str, number_skipped_entries: usize) -> Trace;
+    fn get_tree(number_skipped_entries: usize) -> Tbt;
+    fn extract_trace(
+        logfile_folder: &str,
+        number_skipped_entries: usize,
+        maneuver_n: u32,
+        lower: usize,
+        upper: usize,
+    ) -> String;
+}
 
 // A trace consists of the length of the trace (usize) and a hashmap
 // that maps a variable name (String) to its stream of values (Vec<f32>)
@@ -66,8 +82,8 @@ pub fn get_tbt_and_trace(
     lazy_evaluation: bool,
     sub_sampling: bool,
 ) -> (Trace, Tbt) {
-    let trace = get_trace(logfile, number_skipped_entries);
-    let tbt = get_tree(number_skipped_entries);
+    let trace = UserProvidedFunction::get_trace(logfile, number_skipped_entries);
+    let tbt = UserProvidedFunction::get_tree(number_skipped_entries);
     println!(
         "\nSETTING:\n\tIs greedy: (depth first= {lazy_evaluation}, skip= {sub_sampling}({number_skipped_entries}))\n\tTrace length: {}\n\tNumber nodes: {}\n\tNumber formulas: {}\n\nTemporal behavior tree:\n{}\n",
         trace.0,
@@ -82,8 +98,8 @@ pub fn get_tbt_and_trace(
  * Get best number skipped entries
  **********************************/
 pub fn get_best_number_skipped_entries(logfile: &str, sub_sampling: bool) -> (usize, f32) {
-    let trace = get_trace(logfile, 0);
-    let tree = get_tree(0).tree;
+    let trace = UserProvidedFunction::get_trace(logfile, 0);
+    let tree = UserProvidedFunction::get_tree(0).tree;
     let (number_skipped_entries, delta_rho_skipped) = if sub_sampling {
         let (number_skipped_entries, (interval_min, interval_max), (_, _)) =
             get_best_number_skipped(trace, tree);

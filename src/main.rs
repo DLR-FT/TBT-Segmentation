@@ -2,25 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::time::SystemTime;
-use tbt_segmentation::{behaviortree::Tbt, *};
-
-/****************************************
-   This needs to be defined by the user!
-   She needs to provide a Trace and a Tbt
-****************************************/
-fn user_defined(
-    logfile: &str,
-    number_skipped_entries: usize,
-    lazy_evaluation: bool,
-    sub_sampling: bool,
-) -> (Trace, Tbt) {
-    get_tbt_and_trace(
-        logfile,
-        number_skipped_entries,
-        lazy_evaluation,
-        sub_sampling,
-    )
-}
+use tbt_segmentation::{
+    evaluate, get_best_number_skipped_entries, get_tbt_and_trace, parse_command_line,
+};
 
 fn main() {
     let start = SystemTime::now();
@@ -38,7 +22,7 @@ fn main() {
     /*******************
      * STARTUP ROUTINES
      *******************/
-    let (trace, tbt) = user_defined(
+    let (trace, tbt) = get_tbt_and_trace(
         &arguments.logfile,
         number_skipped_entries,
         arguments.lazy_evaluation,

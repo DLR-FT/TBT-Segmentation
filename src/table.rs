@@ -3,6 +3,7 @@
 
 use crate::behaviortree::TbtNode;
 
+type Values<T> = Vec<Vec<Vec<T>>>;
 /*
     Formula:
         1st index: subformula
@@ -14,7 +15,6 @@ use crate::behaviortree::TbtNode;
         2nd index: lower
         3rd index: upper
 */
-type Values<T> = Vec<Vec<Vec<T>>>;
 
 pub struct Table {
     table: Box<Values<Option<f32>>>,
