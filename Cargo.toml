@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "tbt-segmentation"
+version = "1.0.0"
+edition = "2021"
+authors = ["Sebastian Schirmer <sebastian.schirmer@dlr.de>"]
+description = "A segmentation algorithm for TBT specifications"
+readme = "README.md"
+homepage = "www.dlr.de/ft/ulf"
+repository = "https://github.com/DLR-FT/TBT-Segmentation"
+license = "Apache-2.0"
+keywords = ["segmentation", "cyber-physical systems", "offline analysis"]
+
+[dependencies]
+csv = "1.2.2"
+clap = "2.33.3"
+num-format = "0.4.4"
