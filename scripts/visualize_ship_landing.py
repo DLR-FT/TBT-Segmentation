@@ -38,12 +38,12 @@ def show_plot(save_location, behavior, segments, number_of_skipped, x_arr_uas, y
     number_of_skipped = 1 if number_of_skipped == 0 else number_of_skipped
     # Draws UAS
     for segment in segments:
-        beginning = segment_start * number_of_skipped
+        beginning = segment_start
         end = segment * number_of_skipped
         ax.plot3D(x_arr_uas[beginning:end],
                   y_arr_uas[beginning:end],
                   z_arr_uas[beginning:end])
-        segment_start = segment + 1
+        segment_start = end + 1
     ax.plot3D(x_arr_uas[segment_start:],
               y_arr_uas[segment_start:],
               z_arr_uas[segment_start:])
