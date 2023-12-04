@@ -32,7 +32,7 @@ def read_csv(file, x_str, y_str, z_str, heading_str, is_ship=False):
     return x_arr, y_arr, z_arr, heading_arr, t_arr
 
 
-def show_plot(behavior, segments, number_of_skipped, x_arr_uas, y_arr_uas, z_arr_uas, x_arr_ship, y_arr_ship, z_arr_ship, heading_arr_ship):
+def show_plot(save_location, behavior, segments, number_of_skipped, x_arr_uas, y_arr_uas, z_arr_uas, x_arr_ship, y_arr_ship, z_arr_ship, heading_arr_ship):
     ax = plt.axes(projection='3d')
     segment_start = 0
     number_of_skipped = 1 if number_of_skipped == 0 else number_of_skipped
@@ -63,7 +63,10 @@ def show_plot(behavior, segments, number_of_skipped, x_arr_uas, y_arr_uas, z_arr
     ax.set_zlabel("z [m]")
     plt.legend(['Move to position', 'Stay in position', 'Move to touchdown', 'Descend',
                'Ship', "Maneuver: at position", "Maneuver: above ship",], bbox_to_anchor=(1.25, 1.13), ncol=3)
-    plt.show()
+    if save_location is None:
+        plt.show()
+    else:
+        plt.savefig(save_location)
 
 
 def live_replay(behavior, sample_time, frequency_logs, speed_up, x_arr_uas, y_arr_uas, z_arr_uas, x_arr_ship, y_arr_ship, z_arr_ship, heading_arr_ship):
@@ -152,6 +155,8 @@ if __name__ == "__main__":
                         help='Provide a list of integers that provide when other segments start')
     parser.add_argument('-e', '--skippedentries', type=int,
                         help='Provide a the number of entries skipped')
+    parser.add_argument('-p', '--saveplot', type=str,
+                        help='Provides location where to save the plot')
     '''
         Live replay
     '''
@@ -165,9 +170,9 @@ if __name__ == "__main__":
             exit()
         logfile = args.logfile
         x_arr_uas, y_arr_uas, z_arr_uas, heading_arr_uas, t_arr_uas = read_csv(
-            logfile+"\SIMOUT_UAS.csv", "xg", "yg", "zg", "psi")
+            logfile+"/SIMOUT_UAS.csv", "xg", "yg", "zg", "psi")
         x_arr_ship, y_arr_ship, z_arr_ship, heading_arr_ship, t_arr_ship = read_csv(
-            logfile+"\SIMOUT_Ship.csv", "xg", "yg", "zg", "psi", True)
+            logfile+"/SIMOUT_Ship.csv", "xg", "yg", "zg", "psi", True)
         if args.behavior == None:
             print("Error: Expected to provide ground truth behavior!")
             exit()
@@ -192,9 +197,10 @@ if __name__ == "__main__":
                 print("Error: Expected number of skipped entries!")
                 exit()
             skipped_entries = args.skippedentries
+            save_location = args.saveplot
             print(
-                f"Plot ---> Logfile: {logfile}, behavior: {behavior}, segments: {segments}, skipped_entries: {skipped_entries}")
-            show_plot(behavior, segments, skipped_entries, x_arr_uas, y_arr_uas, z_arr_uas,
+                f"Plot ---> Logfile: {logfile}, behavior: {behavior}, segments: {segments}, skipped_entries: {skipped_entries}, save plot: {save_location}")
+            show_plot(save_location, behavior, segments, skipped_entries, x_arr_uas, y_arr_uas, z_arr_uas,
                       x_arr_ship, y_arr_ship, z_arr_ship, heading_arr_ship)
     except ValueError:
         print("Error: Invalid input. Make sure positions are either all strings for 'live' or all integers for 'plot'.")
