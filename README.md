@@ -12,8 +12,8 @@ SPDX-License-Identifier: CC-BY-NC-ND-4.0
 
 ## Table of Content
 - [Temporal Behavior Trees: Robustness and Segmentation](#temporal-behavior-trees-robustness-and-segmentation)
-  - [Getting Started](#getting-started)
   - [Brief Summary of the Supported Operators](#brief-summary-of-the-supported-operators)
+  - [Getting Started](#getting-started)
   - [Docker Environment](#docker-environment)
   - [Contributors](#contributors)
   - [Contributing](#contributing)
@@ -45,27 +45,6 @@ It is also useful to visualize the resulting segmentation, as shown below for th
 <img src="figs/Segmentation.png" width="400">
 </p>
 
-## Getting Started
-
-1. [Install Rust](https://www.rust-lang.org/)
-1. Specify a TBT, e.g., as done [here](src/tree/shipdeck_landing/lateral_maneuver.rs)
-1. [Provide a Trace by implementing ``get_trace``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
-1. [Provide a Tree by implementing ``get_tree``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
-1. [Replace the ``user_defined``-function by your own](src/main.rs)
-1. Call ``cargo build`` or ``cargo build --release`` 
-1. Call ``cargo run -- --help`` to get help on the command-line-usage
-1. Cakk ``cargo test`` to see if the tests are successful
- 
-For instance:
-
-``cargo run --release -- -s -f .\res\logs_wind_front_Lateral\`` runs segmentation using subsampling on a provided logfile. 
-For this example, ``get_trace`` and ``get_tree`` is already provided.
-
-Using the [visualization script](scripts/visualize_ship_landing.py), we can easily plot a segmentation by, e.g., ``python visualize_ship_landing.py plot -b Lateral -s 5000 10000 20000 -e 0 -l ../res/logs_wind_front_Lateral/`` where ``5000, 10000, 20000`` represent beginning of segments (omitting 0), ``-b`` states the expected behavior and is used to plot the dotted lines, and ``-e`` represents the number of skipped entries due to subsampling.
-We can also replay the flight by, e.g.,  ``python visualize_ship_landing.py live -l ../res/logs_wind_front_Lateral/ -b Lateral -f 0.005 0.1 2.0``.
-
-For more information call ``python visualize_ship_landing.py --help``.
-
 ## Brief Summary of the Supported Operators
 
 TBT ``T:=``
@@ -92,6 +71,27 @@ STL ``S:=``
 The TBT operators are defined [here](src/behaviortree.rs) and the STL operators are defined [here](src/stl.rs).
 
 For more details, we refer to the paper. TODO: add paper link here
+
+## Getting Started
+
+1. [Install Rust](https://www.rust-lang.org/)
+1. Specify a TBT, e.g., as done [here](src/tree/shipdeck_landing/lateral_maneuver.rs)
+1. [Provide a Trace by implementing ``get_trace``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
+1. [Provide a Tree by implementing ``get_tree``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
+1. [Replace the ``user_defined``-function by your own](src/main.rs)
+1. Call ``cargo build`` or ``cargo build --release`` 
+1. Call ``cargo run -- --help`` to get help on the command-line-usage
+1. Cakk ``cargo test`` to see if the tests are successful
+ 
+For instance:
+
+``cargo run --release -- -s -f .\res\logs_wind_front_Lateral\`` runs segmentation using subsampling on a provided logfile. 
+For this example, ``get_trace`` and ``get_tree`` is already provided.
+
+Using the [visualization script](scripts/visualize_ship_landing.py), we can easily plot a segmentation by, e.g., ``python visualize_ship_landing.py plot -b Lateral -s 5000 10000 20000 -e 0 -l ../res/logs_wind_front_Lateral/`` where ``5000, 10000, 20000`` represent beginning of segments (omitting 0), ``-b`` states the expected behavior and is used to plot the dotted lines, and ``-e`` represents the number of skipped entries due to subsampling.
+We can also replay the flight by, e.g.,  ``python visualize_ship_landing.py live -l ../res/logs_wind_front_Lateral/ -b Lateral -f 0.005 0.1 2.0``.
+
+For more information call ``python visualize_ship_landing.py --help``.
 
 ## Docker Environment
 1. Install [Docker](https://docs.docker.com/engine/install/)
