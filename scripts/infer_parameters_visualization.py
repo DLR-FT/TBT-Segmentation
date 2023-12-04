@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import subprocess
 
 
@@ -53,7 +54,7 @@ def build_call(filename):
             
         output_location = filename[:-4]
         directory = os.path.dirname(filename)
-        call = ["python", "visualize_ship_landing.py", f'-l' ,directory, '-b' ,f'{behavior}', '-s']
+        call = ["python3", "visualize_ship_landing.py", f'-l' ,directory, '-b' ,f'{behavior}', '-s']
         for segment in segment_str:
             call.append(segment)
         call = call + ['-p', output_location, '-e', str(skipped_entries), 'plot']
@@ -61,6 +62,5 @@ def build_call(filename):
        
 
 if __name__ == "__main__":
-    import sys
     call  = build_call(sys.argv[1])
     subprocess.run(call)

@@ -22,10 +22,10 @@ for dir in $directories; do
     dir="../res/${dir}/"
     echo "Running Lazy eval with subsampling using ${dir}"
     ../target/release/tbt-segmentation -l -c -s -f $dir> "${dir}/subsamplingAndLazy_result.txt"
-    python infer_parameters_visualization.py "${dir}/subsamplingAndLazy_result.txt"
+    python3 infer_parameters_visualization.py "${dir}/subsamplingAndLazy_result.txt"
     echo "Running eval with subsampling using ${dir}"
     ../target/release/tbt-segmentation -c -s -f $dir> "${dir}/subsampling_result.txt"
-    python infer_parameters_visualization.py "${dir}/subsampling_result.txt"
+    python3 infer_parameters_visualization.py "${dir}/subsampling_result.txt"
 done
 
 # Keep the terminal open
