@@ -9,8 +9,8 @@ SPDX-License-Identifier: CC-BY-NC-ND-4.0
 Copyright © 2023 German Aerospace Center (DLR)
 
 This work is licensed under multiple licenses:
-- The main content is licensed under [CC-BY-NC-ND-4.0](LICENSES/CC-BY-NC-ND-4.0.txt),
-- Insignificant files are licensed under [Apache-2.0](LICENSES/Apache-2.0.txt).
+- The source code and the accompanying material are licensed under [Apache-2.0](LICENSES/Apache-2.0.txt).
+- The documentation and insignificant files are licensed under [CC-BY-NC-ND-4.0](LICENSES/CC-BY-NC-ND-4.0.txt),
  
 Please see the individual files for more accurate information.
 
