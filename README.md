@@ -101,8 +101,8 @@ For more information call ``python visualize_ship_landing.py --help``.
    - Run ``. scripts/run.sh`` that takes all logfiles and computes the segmentation
    - Check results of each logfiles that are located in the following subfolder: ``cd ./res/``
    - Within you will find ``subsampling_result.txt`` and ``subsamplingAndLazy_result.txt``, as well `.png`-plots for each of them.
-   - (Optional) To display plots copy them from the docker container to your host machine
-     -  ``docker cp <container_id>:<location_png/results> <location_to_be_stored>`` (copy whole folder or indiviual files), e.g., ``docker cp e7ba94d69e94:/app/res ./docker``
+   - (Optional) To display plots copy them from the docker container to your host machine; dont use the docker bash.
+     -  ``docker cp <container_id>:<location_png/results> <location_to_be_stored>`` (copy whole folder or individual files), e.g., ``docker cp e7ba94d69e94:/app/res ./docker``
      -  to get container_id call ``docker ps``
 
 ## Contributors
