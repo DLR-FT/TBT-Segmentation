@@ -81,7 +81,7 @@ For more details, we refer to the paper. TODO: add paper link here
 1. [Replace the ``user_defined``-function by your own](src/main.rs)
 1. Call ``cargo build`` or ``cargo build --release`` 
 1. Call ``cargo run -- --help`` to get help on the command-line-usage
-1. Cakk ``cargo test`` to see if the tests are successful
+1. Call ``cargo test`` to see if the tests are successful
  
 For instance:
 
@@ -99,7 +99,7 @@ For more information call ``python visualize_ship_landing.py --help``.
 3. Run Docker Container: ``docker run -it --rm --name tbt-container tbt bash``
 4. To test if the container is working reproduce paper results by (being in the docker bash):
    - Run ``. scripts/run.sh`` that takes all logfiles and computes the segmentation
-   - Check results of each logfiles that are located in the following subfolder: ``cd ../res/``
+   - Check results of each logfiles that are located in the following subfolder: ``cd ./res/``
    - Within you will find ``subsampling_result.txt`` and ``subsamplingAndLazy_result.txt``, as well `.png`-plots for each of them.
    - (Optional) To display plots copy them from the docker container to your host machine
      -  ``docker cp <container_id>:<location_png/results> <location_to_be_stored>`` (copy whole folder or indiviual files), e.g., ``docker cp e7ba94d69e94:/app/res ./docker``
