@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+# SPDX-License-Identifier: Apache-2.0
+
 # To build: docker build -t tbt .
 
 # Stage 1: Build the Rust application
