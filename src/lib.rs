@@ -50,13 +50,6 @@ struct UserProvidedFunction;
 trait ProvidesTraceAndTree {
     fn get_trace(logfile: &str, number_skipped_entries: usize) -> Trace;
     fn get_tree(number_skipped_entries: usize) -> Tbt;
-    fn extract_trace(
-        logfile_folder: &str,
-        number_skipped_entries: usize,
-        maneuver_n: u32,
-        lower: usize,
-        upper: usize,
-    ) -> String;
 }
 
 // A trace consists of the length of the trace (usize) and a hashmap
