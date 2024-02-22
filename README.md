@@ -48,7 +48,7 @@ It is also useful to visualize the resulting segmentation, as shown below for th
 </p>
 
 ## Getting Started
-
+Requires Rust to compile source code and Python for visualization.
 1. [Install Rust](https://www.rust-lang.org/)
 1. Specify a TBT, e.g., as done [here](src/tree/shipdeck_landing/lateral_maneuver.rs)
 1. [Provide a Trace by implementing ``get_trace``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
