@@ -11,6 +11,7 @@ def build_call(filename):
     with open(filename, 'r') as f:
         read_result = False
         skip = True
+        all_segments = []
         segments = []
         skipped_entries = 0
         for line in f:
@@ -29,20 +30,18 @@ def build_call(filename):
                         print(f"Something is of, expected {pattern} but was: {line}")
                         exit()
                 else:
-                   break
+                    if segments != []:
+                        all_segments.append(segments)
+                    segments = []
             else:
-                if line.strip().startswith('Is greedy:'):
-                    pattern = r"(.*)\((\d+)\)(.*)"
+                if line.strip().startswith('Approximations:'):
+                    pattern = r'Approximations:.*?delta: (\d+)'
                     match = re.search(pattern, line)
                     if match:
-                        skipped_entries = int(match.group(2))                
+                        skipped_entries = int(match.group(1))                
                 if line.startswith('Get segmentation after'):
                     read_result = True
                     skip = True
-        segment_str = []
-        for i, (_, upper) in enumerate(segments):
-            if i != len(segments)-1:
-                segment_str.append(str(upper))
         behavior = None
         if 'Lateral' in filename:
             behavior = 'Lateral'
@@ -54,16 +53,25 @@ def build_call(filename):
             behavior = 'Straight'
         else:
             print(f"Unexpected logfile, expected one of the bahviors in the filename but wasnt: {filename}")
-            
-        output_location = filename[:-4]
-        directory = os.path.dirname(filename)
-        call = ["python3", "visualize_ship_landing.py", f'-l' ,directory, '-b' ,f'{behavior}', '-s']
-        for segment in segment_str:
-            call.append(segment)
-        call = call + ['-p', output_location, '-e', str(skipped_entries), 'plot']
-        return call
-       
+        
+        calls = []
+        for i, segments in enumerate(all_segments):
+            output_location = filename[:-4] + "_best"
+            if i != 0:
+                output_location = filename[:-4] + "_a" + str(i)
+            directory = os.path.dirname(filename)
+            call = ["python3", "visualize_ship_landing.py", f'-l' ,directory, '-b' ,f'{behavior}', '-s']
+            segment_str = []
+            for i, (_, upper) in enumerate(segments):
+                if i != len(segments)-1:
+                    segment_str.append(str(upper))
+            for segment in segment_str:
+                call.append(segment)
+            call = call + ['-p', output_location, '-e', str(skipped_entries), 'plot']
+            calls.append(call)
+        return calls
 
 if __name__ == "__main__":
-    call  = build_call(sys.argv[1])
-    subprocess.run(call)
+    calls  = build_call(sys.argv[1])
+    for call in calls:
+        subprocess.run(call)

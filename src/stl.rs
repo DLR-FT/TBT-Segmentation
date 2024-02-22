@@ -7,7 +7,7 @@ use std::collections::HashMap;
 type SubformulaIdx = usize;
 
 pub static mut FORMULACOUNT: SubformulaIdx = 0;
-// get formula count
+// get formula count ie index count
 fn gfc() -> SubformulaIdx {
     unsafe {
         FORMULACOUNT += 1;
@@ -19,6 +19,7 @@ pub fn stl_reset_count() {
 }
 #[derive(Clone)]
 #[allow(dead_code)]
+// STL Syntax
 pub enum Stl {
     Atomic(SubformulaIdx, Vec<String>, ApF),
     Conjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
@@ -33,7 +34,7 @@ pub enum Stl {
     UntilInterval(SubformulaIdx, usize, usize, Box<Stl>, Box<Stl>),
 }
 
-// Constructors
+// STL Constructors
 #[allow(dead_code)]
 impl Stl {
     pub fn get_number_formulas() -> usize {
@@ -82,6 +83,7 @@ impl Stl {
 
 // Functions
 impl Stl {
+    // Returns a list of all atomic propositions
     pub fn get_atomics(&self) -> Vec<&Stl> {
         match self {
             Stl::Atomic(_, _, _) => {
@@ -104,6 +106,7 @@ impl Stl {
         }
     }
 
+    // Transforms STL formula into String that can be printed
     pub fn pretty_print(&self) -> String {
         match self {
             Stl::Atomic(index, _, _) => {
@@ -146,13 +149,17 @@ impl Stl {
     }
 }
 
+/*
+    STL Robustness Semantics
+*/
 impl Stl {
+    // Auxiliary function to evaluate an atomic proposition A := f(x) given a trace
     pub fn evaluate_fnc(
         &self,
-        names: &Vec<String>,
-        trace: &(usize, HashMap<String, Vec<f32>>),
-        lower: usize,
-        function: &ApF,
+        names: &Vec<String>, // States the variables that are used by the f(x)
+        trace: &(usize, HashMap<String, Vec<f32>>), // Provides a Trace ( trace index -> ( String -> trace entries))
+        lower: usize, // position in trace that is considered (note that AP only rely on present position)
+        function: &ApF, // function that is called
     ) -> f32 {
         let mut values = Vec::<f32>::new();
         for name in names {
@@ -166,13 +173,14 @@ impl Stl {
         function(&values)
     }
 
+    // Compute the robustness verdict of an STL formula
     pub fn evaluate(
         &self,
-        table: &mut Table,
-        trace: &Trace,
-        lower: usize,
-        upper: usize,
-        is_lazy: bool,
+        table: &mut Table, // Data structure used for dynamic programming
+        trace: &Trace,     // Provided trace that is evaluated
+        lower: usize,      // Segment start
+        upper: usize,      // Segment end
+        is_lazy: bool,     // Enables/disables lazy evaluation
     ) -> f32 {
         // Lookup table
         let res = if lower <= upper {

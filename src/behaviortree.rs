@@ -24,8 +24,8 @@ pub fn tbt_node_reset_count() {
 #[derive(Clone)]
 #[allow(dead_code)]
 pub struct Tbt {
-    pub next_nodes: HashMap<usize, Vec<usize>>,
-    pub tree: TbtNode,
+    pub next_nodes: HashMap<usize, Vec<usize>>, // Maps current nodes to its successor nodes
+    pub tree: TbtNode,                          // The main tbt tree
 }
 
 #[allow(dead_code)]
@@ -34,10 +34,11 @@ impl Tbt {
         let mut next_nodes = HashMap::new();
         let mut stack = Vec::new();
         Tbt::init_next_nodes_map(&tree, &mut stack, &mut next_nodes);
-        println!("Next nodes map:\n   {:?}", next_nodes);
+        // println!("Next nodes map:\n   {:?}", next_nodes);
         Tbt { next_nodes, tree }
     }
 
+    // Creates the initial mapping for the TBT.next_nodes ie for each node its successor node
     fn init_next_nodes_map<'a>(
         tbt_node: &'a TbtNode,
         stack_sequence: &mut Vec<(&'a TbtNode, usize)>,
@@ -79,6 +80,7 @@ impl Tbt {
         }
     }
 
+    // Returns the first leafe given a TBT, I.e  given Fallback(Sequence(A,B),B,C)) it returns [A, B, C]
     fn get_first_leaf(tbt_node: &TbtNode) -> Vec<usize> {
         match tbt_node {
             TbtNode::Leaf(index, _, _) => vec![*index],
@@ -100,7 +102,7 @@ impl Tbt {
     }
 }
 /*******************************
- * TbtNode
+ * TbtNode Syntax
  *******************************/
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -115,6 +117,7 @@ pub enum TbtNode {
 
 #[allow(dead_code)]
 impl TbtNode {
+    // Returns the index of a TBT node
     fn get_index(&self) -> SubtreeIdx {
         match self {
             TbtNode::Leaf(index, _, _)
@@ -126,6 +129,7 @@ impl TbtNode {
         }
     }
 
+    // Recursive call until first leaf node it found
     fn get_leaf(&self, leaf_index: usize) -> Option<&TbtNode> {
         match self {
             TbtNode::Leaf(index, _, _) => {
@@ -160,6 +164,10 @@ impl TbtNode {
             }
         }
     }
+
+    /****************
+     * Constructors
+     ****************/
 
     pub fn leaf(formula: Stl, name: String) -> Self {
         TbtNode::Leaf(gnc(), formula, name)
@@ -216,6 +224,7 @@ impl TbtNode {
     /******************
      * Helper functions
      ******************/
+    // Retursn a string representation given an TBT. If with_children is false, then only leaves are printed. Line_shift is used to format the output.
     pub fn pretty_print(&self, with_children: bool, line_shift: usize) -> String {
         let indent_num = line_shift + 2;
         let indent = " ".repeat(line_shift);
@@ -284,6 +293,7 @@ impl TbtNode {
         }
     }
 
+    // Returns the first STL formula in the TBT tree
     pub fn get_leaf_formula(&self, look_for_index: usize) -> Option<&Stl> {
         match self {
             TbtNode::Leaf(index, formula, _) => {
@@ -316,6 +326,7 @@ impl TbtNode {
         }
     }
 
+    // Returns all the STL formulas in a TBT
     pub fn get_atomics(&self) -> Vec<&Stl> {
         match self {
             TbtNode::Leaf(_, formula, _) => formula.get_atomics(),
@@ -338,18 +349,19 @@ impl TbtNode {
     /***********************
      * Standard Evaluation
      ***********************/
+    // Evaluates a provided trace given TBT semantics
     #[allow(clippy::too_many_arguments)]
     pub fn evaluate(
         &self,
-        depth_manager_tree: &mut HashMap<usize, (usize, usize, f32)>,
-        tree_table: &mut Table,
-        formula_table: &mut Table,
-        trace: &Trace,
-        lower: usize,
-        upper: usize,
-        system_time: &SystemTime,
-        debug: bool,
-        lazy_eval: bool,
+        depth_manager_tree: &mut HashMap<usize, (usize, usize, f32)>, // used for lazy evaluation to return where stopped early
+        tree_table: &mut Table, // TBT data structure for dynamic programming
+        formula_table: &mut Table, // STL data structure for dynamic programming
+        trace: &Trace,          // Provided Trace that is analyzed
+        lower: usize,           // Segment start
+        upper: usize,           // Segment end
+        system_time: &SystemTime, // Used for profiling
+        debug: bool,            // Enables debugging messages
+        lazy_eval: bool,        // Enables / disables lazy evaluation
     ) -> f32 {
         // Display progress
         if debug {
@@ -553,14 +565,15 @@ impl TbtNode {
     /*******************
      * Segmentation
      *******************/
+    // Returns a segmentation by reading off the dynamic programming entries
     pub fn get_segmentation(
         &self,
-        tree_table: &mut Table,
-        formula_table: &mut Table,
-        trace: &Trace,
-        lower: usize,
-        upper: usize,
-        is_lazy: bool,
+        tree_table: &mut Table, // TBT data structure for dynamic programming
+        formula_table: &mut Table, // STL data structure for dynamic programming
+        trace: &Trace,          // Provided Trace that is analyzed
+        lower: usize,           // Segment start
+        upper: usize,           // Segment end
+        is_lazy: bool,          // Enables / disables lazy evaluation
     ) -> Segmentation {
         match self {
             TbtNode::Leaf(index, formula, _) => {
@@ -805,11 +818,12 @@ impl TbtNode {
         }
     }
 
+    // Computes tau difference that is used to filter out alternative segmentations
     fn get_tau_dif(
         &self,
-        lower: usize,
-        upper: usize,
-        segmentations: &Vec<Segmentation>,
+        lower: usize,                      // Segment start
+        upper: usize,                      // Segment end
+        segmentations: &Vec<Segmentation>, // Previously computed segmentations
     ) -> Option<usize> {
         let mut found = None;
         for segmentation in segmentations {
@@ -849,15 +863,16 @@ impl TbtNode {
     }
 
     #[allow(clippy::too_many_arguments)]
+    // Is used to filter alternative segmentations
     fn get_segmentation_under_restriction(
         &self,
-        tree_table: &mut Table,
-        formula_table: &mut Table,
-        trace: &Trace,
-        lower: usize,
-        upper: usize,
-        tau_dif: usize,
-        rho_dif: f32,
+        tree_table: &mut Table, // TBT data structure for dynamic programming
+        formula_table: &mut Table, // STL data structure for dynamic programming
+        trace: &Trace,          // Provided Trace that is analyzed
+        lower: usize,           // Segment start
+        upper: usize,           // Segment end
+        tau_dif: usize, // Used to filter out alternatives based on where segments start and end
+        rho_dif: f32,   // Used to filter out alternatives based on their difference in robustness
         segmentations: &Vec<Segmentation>,
     ) -> (usize, Segmentation) {
         match self {
@@ -1152,18 +1167,19 @@ impl TbtNode {
     }
 
     #[allow(clippy::too_many_arguments)]
+    // Is used to compute alternative segmentations
     pub fn get_alternative_segmentation(
         &self,
-        tree_table: &mut Table,
-        formula_table: &mut Table,
-        trace: &Trace,
-        lower: usize,
-        upper: usize,
-        best_segmentation: &Segmentation,
-        tau_dif: usize,
-        rho_dif: f32,
-        number: usize,
-        print_leaf_segments_only: bool,
+        tree_table: &mut Table, // TBT data structure for dynamic programming
+        formula_table: &mut Table, // STL data structure for dynamic programming
+        trace: &Trace,          // Provided Trace that is analyzed
+        lower: usize,           // Segment start
+        upper: usize,           // Segment end
+        best_segmentation: &Segmentation, // Reference/optimal segmentation
+        tau_dif: usize, // Used to filter out alternatives based on where segments start and end
+        rho_dif: f32,   // Used to filter out alternatives based on their difference in robustness
+        number: usize,  // Number of alternatives that shall be computed
+        print_leaf_segments_only: bool, // Defines whether only leaves or also other nodes are printed
     ) -> Vec<(usize, Segmentation)> {
         println!("\n\nAlternatives:");
         let mut res_segmentation = Vec::new();
@@ -1193,7 +1209,7 @@ impl TbtNode {
 /*******************************
  * Progress and print functions
  *******************************/
-
+// Debugging progress bar
 fn progress(tree_table: &mut Table, formula_table: &mut Table, system_time: &SystemTime) {
     let (tree_set_calls, tree_total) = tree_table.progress();
     let (formula_set_calls, formula_total) = formula_table.progress();
@@ -1213,6 +1229,7 @@ fn progress(tree_table: &mut Table, formula_table: &mut Table, system_time: &Sys
     }
 }
 
+// Given a Segmentation is prints the result
 pub fn print_segmentation(
     segmentation: &Segmentation,
     only_leaves: bool,

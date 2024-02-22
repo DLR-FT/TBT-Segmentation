@@ -16,10 +16,6 @@ use std::{collections::HashMap, rc::Rc};
 
 impl ProvidesTraceAndTree for UserProvidedFunction {
     fn get_trace(logfile: &str, number_skipped_entries: usize) -> Trace {
-        println!(
-            "Skipped {number_skipped_entries} of logfile:\n\t{}",
-            logfile
-        );
         // Ship
         let ship_file = format!("{logfile}SIMOUT_Ship.csv");
         let mut trace_ship_xg = read_csv_file(&ship_file, "xg", number_skipped_entries);
@@ -95,7 +91,7 @@ impl ProvidesTraceAndTree for UserProvidedFunction {
             0.005
         };
         let events_per_second = (1.0 / frequency) as u64;
-        println!("Events per second: {}", events_per_second);
+        // println!("Events per second: {}", events_per_second);
 
         /*
            Get Maneuvers
