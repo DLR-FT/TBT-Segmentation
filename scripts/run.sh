@@ -4,7 +4,12 @@
 #!/bin/bash
 
 # Build the Rust project
-cargo build --release
+if grep -q docker /proc/1/cgroup; then 
+    echo "Running inside a Docker container."
+else
+    echo "Not running inside a Docker container."
+    cargo build --release
+fi
 
 # Define variables
 previous_pwd="$(pwd)"
