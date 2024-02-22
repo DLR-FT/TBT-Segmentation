@@ -34,11 +34,11 @@ def build_call(filename):
                         all_segments.append(segments)
                     segments = []
             else:
-                if line.strip().startswith('Is greedy:'):
-                    pattern = r"(.*)\((\d+)\)(.*)"
+                if line.strip().startswith('Approximations:'):
+                    pattern = r'Approximations:.*?delta: (\d+)'
                     match = re.search(pattern, line)
                     if match:
-                        skipped_entries = int(match.group(2))                
+                        skipped_entries = int(match.group(1))                
                 if line.startswith('Get segmentation after'):
                     read_result = True
                     skip = True

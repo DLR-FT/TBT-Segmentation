@@ -140,7 +140,7 @@ For more details, we refer to the paper. TODO: add paper link here
      -  ``docker cp <container_id>:<location_png/results> <location_to_be_stored>`` (copy whole folder or individual files), e.g., ``docker cp e7ba94d69e94:/app/res ./docker``
      -  to get container_id call ``docker ps``
 
-> Note that the Dockerfile uses multiple stages. The first stage builds the executable using rust/cargo and the second stage uses a debian environment to execute it. Therefore, there are no cargo-commands available in the container while running. Line 7 in run.sh will fail, but since it is prebuilded during the build stage, the consecutive command will work.
+> Note that the Dockerfile uses multiple stages. The first stage builds the executable using rust/cargo and the second stage uses a debian environment to execute it. Therefore, there are no cargo-commands available in the container while running. Line 7 in run.sh will fail, but since it is prebuilded during the build stage, the consecutive commands will work.
 
  
 ## How to Interpret the Output Format
