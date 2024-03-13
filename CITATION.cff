@@ -1,0 +1,53 @@
+#SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+#SPDX-License-Identifier: CC-BY-NC-ND-4.0
+
+cff-version: 1.2.0
+message: "If you use this software or want to refer to our paper, please cite it as below."
+authors:
+- family-names: "Schirmer"
+  given-names: "Sebastian"
+  orcid: "https://orcid.org/0000-0002-4596-2479"
+- family-names: "Singh"
+  given-names: "Jasdeep"
+  orcid: "https://orcid.org/0009-0000-2759-3721"
+- family-names: "Jensen"
+  given-names: "Emily"
+  orcid: "https://orcid.org/0000-0002-1550-379X"
+- family-names: "Dauer"
+  given-names: "Johann"
+  orcid: "https://orcid.org/0000-0002-8287-2376"
+- family-names: "Finkbeiner"
+  given-names: "Bernd"
+  orcid: "https://orcid.org/0000-0002-4280-8441"
+- family-names: "Sankaranarayanan"
+  given-names: "Sriram"
+  orcid: "https://orcid.org/0000-0001-7315-4340"
+title: "Temporal Behavior Trees"
+version: 1.0.0
+date-released: 2023-12-01
+url: "https://github.com/DLR-FT/TBT-Segmentation"
+preferred-citation:
+  type: proceedings
+  authors:
+  - family-names: "Schirmer"
+    given-names: "Sebastian"
+    orcid: "https://orcid.org/0000-0002-4596-2479"
+  - family-names: "Singh"
+    given-names: "Jasdeep"
+    orcid: "https://orcid.org/0009-0000-2759-3721"
+  - family-names: "Jensen"
+    given-names: "Emily"
+    orcid: "https://orcid.org/0000-0002-1550-379X"
+  - family-names: "Dauer"
+    given-names: "Johann"
+    orcid: "https://orcid.org/0000-0002-8287-2376"
+  - family-names: "Finkbeiner"
+    given-names: "Bernd"
+    orcid: "https://orcid.org/0000-0002-4280-8441"
+  - family-names: "Sankaranarayanan"
+    given-names: "Sriram"
+    orcid: "https://orcid.org/0000-0001-7315-4340"
+  doi: "10.1145/3641513.3650180"
+  journal: "HSCC'24"
+  title: "Temporal Behavior Trees: Robustness and Segmentation"
+  year: 2024
