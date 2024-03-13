@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 SPDX-License-Identifier: CC-BY-NC-ND-4.0
 -->
 
-> This tool is based on the paper [Temporal Behavior Trees: Robustness and Segmentation](https://doi.org/10.1145/3641513.3650180) and its companion poster [Temporal Behavior Trees - Segmentation](https://doi.org/10.1145/3641513.3652534) that was published at [HSCC'24](https://hscc.acm.org/2024/).
+> This tool is based on the paper [Temporal Behavior Trees: Robustness and Segmentation](https://doi.org/10.1145/3641513.3650180) and its companion poster [Temporal Behavior Trees - Segmentation](https://doi.org/10.1145/3641513.3652534), which were published at [HSCC'24](https://hscc.acm.org/2024/).
 
 > If you encounter any issues, have questions, or need assistance, feel free to reach out:  sebastian dot schirmer at dlr dot de
 
