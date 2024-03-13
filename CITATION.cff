@@ -1,32 +1,50 @@
 cff-version: 1.2.0
 message: "If you use this software or want to refer to our paper, please cite it as below."
 authors:
-- family-names: "Lisa"
-  given-names: "Mona"
-  orcid: "https://orcid.org/0000-0000-0000-0000"
-- family-names: "Bot"
-  given-names: "Hew"
-  orcid: "https://orcid.org/0000-0000-0000-0000"
-title: "My Research Software"
-version: 2.0.4
-doi: 10.5281/zenodo.1234
-date-released: 2017-12-18
-url: "https://github.com/github-linguist/linguist"
+- family-names: "Schirmer"
+  given-names: "Sebastian"
+  orcid: "https://orcid.org/0000-0002-4596-2479"
+- family-names: "Singh"
+  given-names: "Jasdeep"
+  orcid: "https://orcid.org/0009-0000-2759-3721"
+- family-names: "Jensen"
+  given-names: "Emily"
+  orcid: "https://orcid.org/0000-0002-1550-379X"
+- family-names: "Dauer"
+  given-names: "Johann"
+  orcid: "https://orcid.org/0000-0002-8287-2376"
+- family-names: "Finkbeiner"
+  given-names: "Bernd"
+  orcid: "https://orcid.org/0000-0002-4280-8441"
+- family-names: "Sankaranarayanan"
+  given-names: "Sriram"
+  orcid: "https://orcid.org/0000-0001-7315-4340"
+title: "Temporal Behavior Trees"
+version: 1.0.0
+date-released: 2023-12-01
+url: "https://github.com/DLR-FT/TBT-Segmentation"
 preferred-citation:
-  type: article
+  type: proceedings
   authors:
-  - family-names: "Lisa"
-    given-names: "Mona"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
-  - family-names: "Bot"
-    given-names: "Hew"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
-  doi: "10.0000/00000"
-  journal: "Journal Title"
-  month: 9
-  start: 1 # First page number
-  end: 10 # Last page number
-  title: "My awesome research software"
-  issue: 1
-  volume: 1
-  year: 2021
+  - family-names: "Schirmer"
+    given-names: "Sebastian"
+    orcid: "https://orcid.org/0000-0002-4596-2479"
+  - family-names: "Singh"
+    given-names: "Jasdeep"
+    orcid: "https://orcid.org/0009-0000-2759-3721"
+  - family-names: "Jensen"
+    given-names: "Emily"
+    orcid: "https://orcid.org/0000-0002-1550-379X"
+  - family-names: "Dauer"
+    given-names: "Johann"
+    orcid: "https://orcid.org/0000-0002-8287-2376"
+  - family-names: "Finkbeiner"
+    given-names: "Bernd"
+    orcid: "https://orcid.org/0000-0002-4280-8441"
+  - family-names: "Sankaranarayanan"
+    given-names: "Sriram"
+    orcid: "https://orcid.org/0000-0001-7315-4340"
+  doi: "10.1145/3641513.3650180"
+  journal: "HSCC'24"
+  title: "Temporal Behavior Trees: Robustness and Segmentation"
+  year: 2024
