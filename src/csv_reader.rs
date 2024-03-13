@@ -114,7 +114,6 @@ pub fn get_best_number_skipped(trace: Trace, tree: TbtNode) -> (usize, (f32, f32
             global_streak_neg_dif = neg_number_consecutive_false_dif;
         }
     }
-    // println!("Minimal negative streak: {global_streak_neg}, minimal positive streak: {global_streak_pos}");
     if global_streak_pos == usize::MAX || global_streak_neg == usize::MAX {
         (0, global_streak_pos_dif, global_streak_neg_dif)
     } else {
