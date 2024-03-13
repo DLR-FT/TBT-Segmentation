@@ -97,7 +97,7 @@ pub fn parse_command_line() -> CommandLineArguments {
         .short("c")
         .long("children")
         .help("Specifies whether only leaf nodes of a segmentation shall be printed");
-    // Add to the app to be parsed
+    // Add arguments to the app to be parsed
     let app = app
         .arg(logfile)
         .arg(lazy_evaluation)

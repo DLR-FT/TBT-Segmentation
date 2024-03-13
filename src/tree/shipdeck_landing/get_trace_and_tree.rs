@@ -91,7 +91,6 @@ impl ProvidesTraceAndTree for UserProvidedFunction {
             0.005
         };
         let events_per_second = (1.0 / frequency) as u64;
-        // println!("Events per second: {}", events_per_second);
 
         /*
            Get Maneuvers

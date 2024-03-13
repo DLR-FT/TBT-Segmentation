@@ -58,10 +58,10 @@ Requires Rust to compile source code and Python for visualization.
  
 For instance:
 
-``cargo run --release -- -s -f .\res\logs_wind_front_Lateral\`` runs segmentation using subsampling on a provided logfile. 
+``cargo run --release -- -s -f ./res/logs_wind_front_Lateral/`` runs segmentation using subsampling on a provided logfile. 
 For this example, ``get_trace`` and ``get_tree`` is already provided.
 
-Using the [visualization script](scripts/visualize_ship_landing.py), we can easily plot a segmentation by, e.g., ``python visualize_ship_landing.py plot -b Lateral -s 5000 10000 20000 -e 0 -l ../res/logs_wind_front_Lateral/`` where ``5000, 10000, 20000`` represent beginning of segments (omitting 0), ``-b`` states the expected behavior and is used to plot the dotted lines, and ``-e`` represents the number of skipped entries due to subsampling.
+Using the [visualization script](scripts/visualize_ship_landing.py), we can easily plot a segmentation by, e.g., ``python visualize_ship_landing.py plot -b Lateral -s 5000 10000 20000 -e 0 -l ../res/logs_wind_front_Lateral/`` where ``5000, 10000, 20000`` represent beginning of segments (omitting 0), ``-b`` states the expected behavior and is used to plot the dotted lines, and ``-e`` represents the number of skipped entries due to subsampling. There is also the option to save a plot to inspect it in a docker environment using ``-p``.
 We can also replay the flight by, e.g.,  ``python visualize_ship_landing.py live -l ../res/logs_wind_front_Lateral/ -b Lateral -f 0.005 0.1 2.0``.
 
 For more information call ``python visualize_ship_landing.py --help``.
@@ -132,13 +132,15 @@ For more details, we refer to the paper. TODO: add paper link here
       - The script calls the tool as defined [here](#getting-started) for each logfolder that exists in [res](res).
       - The results for each run are stored in the respective logfolder.
    - Check results of each logfiles that are located in the following subfolder: ``cd ./res/``
-   - The files in the folders [res/<folder\>](res) are called ``subsampling_result.txt`` and ``subsamplingAndLazy_result.txt``.
+   - The files in the folders [res/<folder>](res) are called ``subsampling_result.txt`` and ``subsamplingAndLazy_result.txt``.
    - Besides the result-files, for each segmentation, the script produces a `.png`-plot. Every `.png`-plot that has a name that ends with `aX`, where `X` is a number, represents an alternative segmentations where the number corresponds to the alternative in the result-file.  For instance, Figure 9 of the HSCC paper can then be found [here](res/logs_wind_front_Oblique/subsampling_result_a3.png).
    - (Optional) To display plots copy them from the docker container to your host machine; dont use the docker bash.
      -  ``docker cp <container_id>:<location_png/results> <location_to_be_stored>`` (copy whole folder or individual files), e.g., ``docker cp e7ba94d69e94:/app/res ./docker``
      -  to get container_id call ``docker ps``
 
 > The Dockerfile uses multiple stages. The first stage builds the executable using rust/cargo and the second stage uses a debian environment to execute it. Therefore, there are no cargo-commands available in the container while running.
+
+> Also, there is a line ending issue, when building the docker image in a Windows environment. We recommend building the image on a Linux machine to avoid this issue (WSL is an option for Windows systems).
  
 ## How to Interpret the Output Format
 Running e.g. `cargo run --release -- -l -c -s -f /<your-foulder>/TBT-Segmentation/res/logs_wind_front_Lateral/` produces an output that contains the following lines:

@@ -52,11 +52,11 @@ trait ProvidesTraceAndTree {
     fn get_tree(number_skipped_entries: usize) -> Tbt;
 }
 
-// A trace consists of the length of the trace (usize) and a hashmap
-// that maps a variable name (String) to its stream of values (Vec<f32>)
+/// A trace consists of the length of the trace (usize) and a hashmap
+/// that maps a variable name (String) to its stream of values (Vec<f32>)
 pub type Trace = (usize, HashMap<String, Vec<f32>>);
 
-// A function that represents an atomic proposition
+/// A function that represents an atomic proposition
 pub type ApF = Rc<dyn Fn(&[f32]) -> f32>;
 
 /************************
@@ -69,11 +69,16 @@ pub fn parse_command_line() -> CommandLineArguments {
 /**********************************
  * Returns TBT and Trace
  **********************************/
+/// # Arguments
+/// * `logfile` - Location of logfile
+/// * `number_skipped_entries` - used for subsampling ie number of entries in the logfile that can be skipped
+/// * `lazy_evaluation` - enables/disables lazy evaluation
+/// * `sub_sampling` - enables/disables sub sampling
 pub fn get_tbt_and_trace(
-    logfile: &str,                 // Location of logfile
-    number_skipped_entries: usize, // used for subsampling ie number of entries in the logfile that can be skipped
-    lazy_evaluation: bool,         // enables/disables lazy evaluation
-    sub_sampling: bool,            // enables/disables sub sampling
+    logfile: &str,
+    number_skipped_entries: usize,
+    lazy_evaluation: bool,
+    sub_sampling: bool,
 ) -> (Trace, Tbt) {
     let trace = UserProvidedFunction::get_trace(logfile, number_skipped_entries);
     let tbt = UserProvidedFunction::get_tree(number_skipped_entries);
@@ -95,7 +100,6 @@ pub fn get_best_number_skipped_entries(logfile: &str, sub_sampling: bool) -> (us
         let (number_skipped_entries, (interval_min, interval_max), (_, _)) =
             get_best_number_skipped(trace, tree);
         let delta_rho = interval_max - interval_min;
-        // println!("Analysis of APs on trace:\n\tsubsampling delta: {number_skipped_entries}\n\trobustness diff {} ({interval_min},{interval_max})", delta_rho);
         (number_skipped_entries, delta_rho)
     } else {
         (0, 0.0)
@@ -107,17 +111,27 @@ pub fn get_best_number_skipped_entries(logfile: &str, sub_sampling: bool) -> (us
  *  Evaluation
  ***************/
 #[allow(clippy::too_many_arguments)]
-// Core function that evaluates a logfile given a TBT specification
+/// Core function that evaluates a logfile given a TBT specification
+/// # Arguments
+/// * `tbt` - TBT specification
+/// * `trace` - Provided trace that is analyzed
+/// * `start` - Used for profiling
+/// * `sub_sampling` - Enables/disables sub sampling
+/// * `lazy_evaluation` - Enables/disables lazy evaluation
+/// * `delta_rho_skipped` - Used for subsampling
+/// * `print_leaf_segments_only` - Used for debugging: if true only leaves are printed
+/// * `segmentation_setting` - Represents the command line arguments to compute the alternative segmentations
+/// * `debug` - Used for progress bar
 pub fn evaluate(
-    tbt: Tbt,                                          // TBT specification
-    trace: Trace,                                      // Provided trace that is analyzed
-    start: SystemTime,                                 // Used for profiling
-    sub_sampling: bool,                                // Enables/disables sub sampling
-    lazy_evaluation: bool,                             // Enables/disables lazy evaluation
-    delta_rho_skipped: f32,                            // Used for subsampling
-    print_leaf_segments_only: bool, // Used for debugging: if true only leaves are printed
-    segmentation_setting: Option<SegmentationSetting>, // Represents the command line arguments to compute the alternative segmentations
-    debug: bool,                                       // Used for progress bar
+    tbt: Tbt,
+    trace: Trace,
+    start: SystemTime,
+    sub_sampling: bool,
+    lazy_evaluation: bool,
+    delta_rho_skipped: f32,
+    print_leaf_segments_only: bool,
+    segmentation_setting: Option<SegmentationSetting>,
+    debug: bool,
 ) -> f32 {
     // MEMORY ALLOCATIONS
     let mut tree_table = Table::new(Tbt::get_number_nodes(), trace.0);
@@ -184,18 +198,29 @@ pub fn evaluate(
  * SEGMENTATION
  ***********************/
 #[allow(clippy::too_many_arguments)]
-// Used to produce the segmentation
+/// Used to produce the segmentation
+/// # Arguments
+/// * `robustness_res` - Robustness result found using evaluate() that is used to find the segmentation here
+/// * `tree_table` - TBT table used for dynamic programming
+/// * `formula_table` - STL table used for dynamic programming
+/// * `start` - Used for profiling
+/// * `tbt` - TBT specification
+/// * `trace` - Trace that is used
+/// * `lazy_evaluation` - Enables/disables lazy evaluation
+/// * `sub_sampling` - Enables/disables sub sampling
+/// * `delta_rho_skipped` - Delta used for the sub sampling
+/// * `print_children_only` - Enables/disables debugging prints
 fn get_segmentation<'a>(
-    robustness_res: f32, // Robustness result found using evaluate() that is used to find the segmentation here
-    tree_table: &mut Table, // TBT table used for dynamic programming
-    formula_table: &mut Table, // STL table used for dynamic programming
-    start: SystemTime,   // Used for profiling
-    tbt: &'a Tbt,        // TBT specification
-    trace: &Trace,       // Trace that is used
-    lazy_evaluation: bool, // Enables/disables lazy evaluation
-    sub_sampling: bool,  // Enables/disables sub sampling
-    delta_rho_skipped: f32, // Delta used for the sub sampling
-    print_children_only: bool, // Enables/disables debugging prints
+    robustness_res: f32,
+    tree_table: &mut Table,
+    formula_table: &mut Table,
+    start: SystemTime,
+    tbt: &'a Tbt,
+    trace: &Trace,
+    lazy_evaluation: bool,
+    sub_sampling: bool,
+    delta_rho_skipped: f32,
+    print_children_only: bool,
 ) -> (Segmentation<'a>, f32) {
     println!(
         "\nStatistics: Robustness value is {} with {} total tree lookups and {} formula lookups\nGet segmentation after {} seconds.",
@@ -224,16 +249,25 @@ fn get_segmentation<'a>(
  * ALTERNATIVE SEGMENTATION
  ***************************/
 #[allow(clippy::too_many_arguments)]
-// Provides alternative segmentation using the read command line arguments
+/// Provides alternative segmentation using the read command line arguments
+/// # Arguments
+/// * `tbt` - TBT specification
+/// * `tree_table` - TBT table used for dynamic programming
+/// * `formula_table` - STL table used for dynamic programming
+/// * `trace` - Trace that is used
+/// * `segmentation` - Optimal segmenation returned by get_segmentation()
+/// * `robustness_value` - Robustness values produced by evaluate()
+/// * `print_leaf_segments_only` - Enables/disables to print only leaf nodes
+/// * `segmentation_setting` - Read command line arguments such as tau and rho
 pub fn get_alternative_segmentation(
-    tbt: &Tbt,                                 // TBT specification
-    tree_table: &mut Table,                    // TBT table used for dynamic programming
-    formula_table: &mut Table,                 // STL table used for dynamic programming
-    trace: &Trace,                             // Trace that is used
-    segmentation: &Segmentation,               // Optimal segmenation returned by get_segmentation()
-    robustness_value: f32,                     // Robustness values produced by evaluate()
-    print_leaf_segments_only: bool,            // Enables/disables to print only leaf nodes
-    segmentation_setting: SegmentationSetting, // Read command line arguments such as tau and rho
+    tbt: &Tbt,
+    tree_table: &mut Table,
+    formula_table: &mut Table,
+    trace: &Trace,
+    segmentation: &Segmentation,
+    robustness_value: f32,
+    print_leaf_segments_only: bool,
+    segmentation_setting: SegmentationSetting,
 ) {
     let _other_segmentations = tbt.tree.get_alternative_segmentation(
         tree_table,
