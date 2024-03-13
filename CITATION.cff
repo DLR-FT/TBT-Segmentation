@@ -1,3 +1,6 @@
+#SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+#SPDX-License-Identifier: CC-BY-NC-ND-4.0
+
 cff-version: 1.2.0
 message: "If you use this software or want to refer to our paper, please cite it as below."
 authors:
