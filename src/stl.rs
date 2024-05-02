@@ -336,3 +336,18 @@ impl Stl {
         }
     }
 }
+
+impl Stl {
+    pub fn get_string_conjunction() -> String {
+        "&".to_string()
+    }
+    pub fn get_string_disjunction() -> String {
+        "|".to_string()
+    }
+    pub fn get_string_until() -> String {
+        "U".to_string()
+    }
+    pub fn get_string_until_interval() -> String {
+        "IU".to_string()
+    }
+}

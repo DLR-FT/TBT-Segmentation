@@ -232,10 +232,19 @@ impl TbtNode {
         let indent = " ".repeat(line_shift);
         match self {
             TbtNode::Leaf(index, formula, name) => {
-                if with_children {
-                    format!("{}Leaf({index} {name})[{}]", indent, formula.pretty_print())
+                let print_name = if name.is_empty() {
+                    name.clone()
                 } else {
-                    format!("{}Leaf({index} {name})", indent)
+                    format!(" {name}").to_string()
+                };
+                if with_children {
+                    format!(
+                        "{}Leaf({index}{print_name})[{}]",
+                        indent,
+                        formula.pretty_print()
+                    )
+                } else {
+                    format!("{}Leaf({index}{print_name})", indent)
                 }
             }
             TbtNode::Fallback(index, subtrees) => {

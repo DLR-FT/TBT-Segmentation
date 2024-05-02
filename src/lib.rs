@@ -20,24 +20,29 @@ mod tree {
         pub mod straight_maneuver;
     }
 }
-
 pub mod behaviortree;
 mod command_line_parser;
 mod csv_reader;
+mod functions;
+mod parser;
 mod stl;
 mod table;
 #[cfg(test)]
 mod tests;
 use behaviortree::print_segmentation;
+use behaviortree::tbt_node_reset_count;
 use behaviortree::Segmentation;
 use behaviortree::Tbt;
+use behaviortree::TbtNode;
 use command_line_parser::CommandLineArguments;
 use command_line_parser::SegmentationSetting;
 use csv_reader::get_best_number_skipped;
 use num_format::{Locale, ToFormattedString};
+use parser::parse;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::SystemTime;
+use stl::stl_reset_count;
 use stl::Stl;
 use table::Table;
 
@@ -64,6 +69,18 @@ pub type ApF = Rc<dyn Fn(&[f32]) -> f32>;
  ************************/
 pub fn parse_command_line() -> CommandLineArguments {
     command_line_parser::parse_command_line()
+}
+
+pub fn parse_tbt(formula: String, events_per_second: usize) -> Option<TbtNode> {
+    tbt_node_reset_count();
+    stl_reset_count();
+    match parse(formula, events_per_second) {
+        Ok(tbt) => Some(tbt),
+        Err(e) => {
+            println!("{}", e.to_string());
+            None
+        }
+    }
 }
 
 /**********************************

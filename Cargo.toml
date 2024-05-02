@@ -14,6 +14,8 @@ license = "Apache-2.0"
 keywords = ["segmentation", "cyber-physical systems", "offline analysis"]
 
 [dependencies]
+pest = "2.7.9"
+pest_derive = "2.7.9"
 csv = "1.2.2"
 clap = "2.33.3"
 num-format = "0.4.4"
