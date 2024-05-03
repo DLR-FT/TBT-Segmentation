@@ -31,13 +31,12 @@ pub fn parse(
     if use_prints {
         println!("Constants: {:#?}", constant_map);
     }
-    let tbt = parse_tbt(
+    parse_tbt(
         spec_iter.next().unwrap(),
         events_per_second,
         &constant_map,
         use_prints,
-    );
-    tbt
+    )
 }
 
 fn parse_constants(
@@ -76,10 +75,10 @@ fn parse_tbt(
                 p = leaf_tokens.next().unwrap();
             }
             assert!(p.as_rule() == Rule::STL);
-            return Ok(TbtNode::leaf(
+            Ok(TbtNode::leaf(
                 parse_stl(p, events_per_second, constant_map, use_prints)?,
                 name.to_string(),
-            ));
+            ))
         }
         Rule::Fallback => {
             // read arguments
@@ -87,7 +86,7 @@ fn parse_tbt(
             assert!(p.as_rule() == Rule::TBTList);
             let tbt_list = parse_tbt_list(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
-            return Ok(TbtNode::fallback(tbt_list));
+            Ok(TbtNode::fallback(tbt_list))
         }
         Rule::Parallel => {
             let mut arguments = tbt_pair.into_inner();
@@ -100,7 +99,7 @@ fn parse_tbt(
             assert!(p.as_rule() == Rule::TBTList);
             let tbt_list = parse_tbt_list(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
-            return Ok(TbtNode::parallel(m, tbt_list));
+            Ok(TbtNode::parallel(m, tbt_list))
         }
         Rule::Sequence => {
             // read arguments
@@ -113,7 +112,7 @@ fn parse_tbt(
             for tbt in &tbt_list[1..] {
                 tbt_node = TbtNode::sequence(tbt.clone(), tbt_node)
             }
-            return Ok(tbt_node);
+            Ok(tbt_node)
         }
         Rule::Timeout => {
             let mut arguments = tbt_pair.into_inner();
@@ -132,7 +131,7 @@ fn parse_tbt(
             );
             let child = parse_tbt(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
-            return Ok(TbtNode::timeout(t, child));
+            Ok(TbtNode::timeout(t, child))
         }
         Rule::Kleene => {
             let mut arguments = tbt_pair.into_inner();
@@ -151,30 +150,26 @@ fn parse_tbt(
             );
             let child = parse_tbt(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
-            return Ok(TbtNode::kleene(n, child));
+            Ok(TbtNode::kleene(n, child))
         }
-        Rule::STL => {
-            return Ok(TbtNode::leaf(
-                parse_stl(tbt_pair, events_per_second, constant_map, use_prints)?,
-                "".to_string(),
-            ))
-        } // easy workaround to parse TBT list (parse_tbtlist() already accesses inner and calls parse_tbt which accesses inner again)
-        _ => {
-            return Err(pest::error::Error::new_from_span(
-                ErrorVariant::ParsingError {
-                    positives: vec![
-                        Rule::Leaf,
-                        Rule::Fallback,
-                        Rule::Parallel,
-                        Rule::Sequence,
-                        Rule::Timeout,
-                        Rule::Kleene,
-                    ],
-                    negatives: vec![tbt_pair.as_rule()],
-                },
-                tbt_pair.as_span(),
-            ))
-        }
+        Rule::STL => Ok(TbtNode::leaf(
+            parse_stl(tbt_pair, events_per_second, constant_map, use_prints)?,
+            "".to_string(),
+        )), // easy workaround to parse TBT list (parse_tbtlist() already accesses inner and calls parse_tbt which accesses inner again)
+        _ => Err(pest::error::Error::new_from_span(
+            ErrorVariant::ParsingError {
+                positives: vec![
+                    Rule::Leaf,
+                    Rule::Fallback,
+                    Rule::Parallel,
+                    Rule::Sequence,
+                    Rule::Timeout,
+                    Rule::Kleene,
+                ],
+                negatives: vec![tbt_pair.as_rule()],
+            },
+            tbt_pair.as_span(),
+        )),
     }
 }
 
@@ -189,8 +184,8 @@ fn parse_tbt_list(
         let tbt = parse_tbt(pair, events_per_second, constant_map, use_prints)?;
         tbt_list.push(tbt);
     }
-    assert!(tbt_list.len() > 0);
-    return Ok(tbt_list);
+    assert!(!tbt_list.is_empty());
+    Ok(tbt_list)
 }
 
 fn parse_stl(
@@ -217,7 +212,7 @@ fn parse_stl(
     let mut children = Vec::<Stl>::new();
     let mut ops = Vec::<(String, usize, usize)>::new();
     let mut is_op = false;
-    while p_iter.peek() != None {
+    while p_iter.peek().is_some() {
         let element = p_iter.next().unwrap();
         // for element in p_iter.by_ref() {
         if is_op {
@@ -242,19 +237,13 @@ fn parse_stl(
         is_op = !is_op;
     }
     // similar to shunting yard algorithm but very inefficient todo: implement O(N), currently O(N^2)
-    while ops.len() > 0 {
+    while !ops.is_empty() {
         let mut next = (i32::MAX, 0);
-        for i in 0..ops.len() {
+        for (i, op) in ops.iter().enumerate() {
             // Go once through
-            let (val, is_left_associative) = precedence_map.get(&ops[i].0).unwrap();
-            if *val <= next.0 {
-                // If stronger then take that next
-                if *val < next.0 {
-                    next = (*val, i);
-                // If right associative, then take the most right one
-                } else if !is_left_associative {
-                    next = (*val, i);
-                }
+            let (val, is_left_associative) = precedence_map.get(&op.0).unwrap();
+            if *val < next.0 || (*val <= next.0 && !is_left_associative) {
+                next = (*val, i);
             }
         }
         // Do the update
@@ -276,7 +265,7 @@ fn parse_stl(
         children.insert(next.1, new_op);
     }
     let parsed_func = children[0].clone();
-    return Ok(parsed_func);
+    Ok(parsed_func)
 }
 
 fn parse_stl_element(
@@ -303,7 +292,7 @@ fn parse_stl_element(
             let string_set: HashSet<_> = value_names.iter().cloned().collect();
             if string_set.len() != value_names.len() {
                 println!("Atomic function needs to provide unique arguments!");
-                return Err(pest::error::Error::new_from_span(
+                Err(pest::error::Error::new_from_span(
                     ErrorVariant::ParsingError {
                         positives: vec![
                             Rule::STLNeg,
@@ -316,7 +305,7 @@ fn parse_stl_element(
                         negatives: vec![arguments_rule],
                     },
                     arguments_span,
-                ));
+                ))
             } else {
                 // build closure
                 assert!(p.peek().unwrap().as_rule() == Rule::Function);
@@ -329,12 +318,11 @@ fn parse_stl_element(
                     if use_prints {
                         println!(
                             "AP({i}) {function_name} ({:?}): {}\n",
-                            value_names_cpy,
-                            print_fn.to_string()
+                            value_names_cpy, print_fn
                         );
                     }
                 }
-                return Ok(ap);
+                Ok(ap)
             }
         }
         Rule::STL_unary_op => {
@@ -347,17 +335,17 @@ fn parse_stl_element(
                 use_prints,
             )?;
             match operation.as_rule() {
-                Rule::STLNeg => return Ok(Stl::neg(stl_child)),
-                Rule::Next => return Ok(Stl::next(stl_child)),
-                Rule::Eventually => return Ok(Stl::eventually(stl_child)),
-                Rule::Globally => return Ok(Stl::globally(stl_child)),
+                Rule::STLNeg => Ok(Stl::negation(stl_child)),
+                Rule::Next => Ok(Stl::next(stl_child)),
+                Rule::Eventually => Ok(Stl::eventually(stl_child)),
+                Rule::Globally => Ok(Stl::globally(stl_child)),
                 Rule::Eventually_interval => {
                     let mut p = operation.into_inner();
                     let lower = p.next().unwrap().as_str().trim().parse::<usize>().unwrap()
                         * events_per_second;
                     let upper = p.next().unwrap().as_str().trim().parse::<usize>().unwrap()
                         * events_per_second;
-                    return Ok(Stl::eventually_interval(lower, upper, stl_child));
+                    Ok(Stl::eventually_interval(lower, upper, stl_child))
                 }
                 Rule::Globally_interval => {
                     let mut p = operation.into_inner();
@@ -365,43 +353,37 @@ fn parse_stl_element(
                         * events_per_second;
                     let upper = p.next().unwrap().as_str().trim().parse::<usize>().unwrap()
                         * events_per_second;
-                    return Ok(Stl::globally_interval(lower, upper, stl_child));
+                    Ok(Stl::globally_interval(lower, upper, stl_child))
                 }
-                _ => {
-                    return Err(pest::error::Error::new_from_span(
-                        ErrorVariant::ParsingError {
-                            positives: vec![
-                                Rule::STLNeg,
-                                Rule::Next,
-                                Rule::Eventually,
-                                Rule::Globally,
-                                Rule::Eventually_interval,
-                                Rule::Globally_interval,
-                            ],
-                            negatives: vec![operation.as_rule()],
-                        },
-                        operation.as_span(),
-                    ))
-                }
+                _ => Err(pest::error::Error::new_from_span(
+                    ErrorVariant::ParsingError {
+                        positives: vec![
+                            Rule::STLNeg,
+                            Rule::Next,
+                            Rule::Eventually,
+                            Rule::Globally,
+                            Rule::Eventually_interval,
+                            Rule::Globally_interval,
+                        ],
+                        negatives: vec![operation.as_rule()],
+                    },
+                    operation.as_span(),
+                )),
             }
         }
-        Rule::Brackets => {
-            return parse_stl(
-                pair.into_inner().next().unwrap(),
-                events_per_second,
-                constant_map,
-                use_prints,
-            );
-        }
-        _ => {
-            return Err(pest::error::Error::new_from_span(
-                ErrorVariant::ParsingError {
-                    positives: vec![Rule::Atomic, Rule::Brackets, Rule::STL_unary_op],
-                    negatives: vec![pair.as_rule()],
-                },
-                pair.as_span(),
-            ))
-        }
+        Rule::Brackets => parse_stl(
+            pair.into_inner().next().unwrap(),
+            events_per_second,
+            constant_map,
+            use_prints,
+        ),
+        _ => Err(pest::error::Error::new_from_span(
+            ErrorVariant::ParsingError {
+                positives: vec![Rule::Atomic, Rule::Brackets, Rule::STL_unary_op],
+                negatives: vec![pair.as_rule()],
+            },
+            pair.as_span(),
+        )),
     }
 }
 
@@ -441,19 +423,13 @@ fn parse_fn(
         is_op = !is_op;
     }
     // similar to shunting yard algorithm but very inefficient todo: implement O(N), currently O(N^2)
-    while ops.len() > 0 {
+    while !ops.is_empty() {
         let mut next = (i32::MAX, 0);
-        for i in 0..ops.len() {
+        for (i, op) in ops.iter().enumerate() {
             // Go once through
-            let (val, is_left_associative) = precedence_map.get(&ops[i]).unwrap();
-            if *val <= next.0 {
-                // If stronger then take that next
-                if *val < next.0 {
-                    next = (*val, i);
-                // If right associative, then take the most right one
-                } else if !is_left_associative {
-                    next = (*val, i);
-                }
+            let (val, is_left_associative) = precedence_map.get(&op).unwrap();
+            if *val < next.0 || (*val <= next.0 && !is_left_associative) {
+                next = (*val, i);
             }
         }
         // Do the update
@@ -479,7 +455,7 @@ fn parse_fn(
         children.insert(next.1, new_op);
     }
     let parsed_func = children[0].clone();
-    return Ok(parsed_func);
+    Ok(parsed_func)
 }
 
 fn parse_function_element(
@@ -492,90 +468,84 @@ fn parse_function_element(
     match element.as_rule() {
         Rule::Word => {
             let w = element.as_str().trim();
-            if let Some(index) = arguments.into_iter().position(|x| x == w) {
-                return Ok(Func::Acc(index, arguments.clone()));
+            if let Some(index) = arguments.iter().position(|x| x == w) {
+                Ok(Func::Acc(index, arguments.clone()))
             } else {
                 let access = constant_map.get(w);
-                if access.is_some() {
-                    return Ok(Func::Number(*access.unwrap()));
+                if let Some(a) = access {
+                    Ok(Func::Number(*a))
                 } else {
                     println!(
                         "Argument '{w}' was not found in arguments vector {:?}",
                         arguments
                     );
-                    return Err(pest::error::Error::new_from_span(
+                    Err(pest::error::Error::new_from_span(
                         ErrorVariant::ParsingError {
                             positives: vec![Rule::Word],
                             negatives: vec![element.as_rule()],
                         },
                         element.as_span(),
-                    ));
+                    ))
                 }
             }
         }
         Rule::Float => {
             let number = element.as_str().trim().parse::<f32>().unwrap();
-            return Ok(Func::number(number));
+            Ok(Func::number(number))
         }
-        Rule::FnBrackets => {
-            return parse_fn(
-                element.into_inner().next().unwrap(),
-                arguments,
-                constant_map,
-            );
-        }
+        Rule::FnBrackets => parse_fn(
+            element.into_inner().next().unwrap(),
+            arguments,
+            constant_map,
+        ),
         Rule::FunctionCall => {
             let mut p_iter = element.into_inner();
             let fn_call = p_iter.next().unwrap().into_inner().next().unwrap();
             let child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
             match fn_call.as_rule() {
-                Rule::Root => return Ok(Func::sqrt(child)),
-                Rule::Abs => return Ok(Func::abs(child)),
-                Rule::RadToDeg => return Ok(Func::rad_to_deg(child)),
-                Rule::DegToRad => return Ok(Func::deg_to_rad(child)),
-                Rule::Cos => return Ok(Func::cos(child)),
-                Rule::Sin => return Ok(Func::sin(child)),
+                Rule::Root => Ok(Func::sqrt(child)),
+                Rule::Abs => Ok(Func::abs(child)),
+                Rule::RadToDeg => Ok(Func::rad_to_deg(child)),
+                Rule::DegToRad => Ok(Func::deg_to_rad(child)),
+                Rule::Cos => Ok(Func::cos(child)),
+                Rule::Sin => Ok(Func::sin(child)),
                 Rule::Min => {
                     let r_child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
-                    return Ok(Func::min(child, r_child));
+                    Ok(Func::min(child, r_child))
                 }
                 Rule::Max => {
                     let r_child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
-                    return Ok(Func::max(child, r_child));
+                    Ok(Func::max(child, r_child))
                 }
-                _ => {
-                    return Err(pest::error::Error::new_from_span(
-                        ErrorVariant::ParsingError {
-                            positives: vec![
-                                Rule::Root,
-                                Rule::Abs,
-                                Rule::RadToDeg,
-                                Rule::DegToRad,
-                                Rule::Cos,
-                                Rule::Sin,
-                                Rule::Min,
-                                Rule::Max,
-                            ],
-                            negatives: vec![fn_call.as_rule()],
-                        },
-                        fn_call.as_span(),
-                    ))
-                }
+                _ => Err(pest::error::Error::new_from_span(
+                    ErrorVariant::ParsingError {
+                        positives: vec![
+                            Rule::Root,
+                            Rule::Abs,
+                            Rule::RadToDeg,
+                            Rule::DegToRad,
+                            Rule::Cos,
+                            Rule::Sin,
+                            Rule::Min,
+                            Rule::Max,
+                        ],
+                        negatives: vec![fn_call.as_rule()],
+                    },
+                    fn_call.as_span(),
+                )),
             }
         }
-        _ => {
-            return Err(pest::error::Error::new_from_span(
-                ErrorVariant::ParsingError {
-                    positives: vec![
-                        Rule::Word,
-                        Rule::Float,
-                        Rule::FnBrackets,
-                        Rule::FunctionCall,
-                    ],
-                    negatives: vec![element.as_rule()],
-                },
-                element.as_span(),
-            ))
-        }
+        _ => Err(pest::error::Error::new_from_span(
+            ErrorVariant::ParsingError {
+                positives: vec![
+                    Rule::Word,
+                    Rule::Float,
+                    Rule::FnBrackets,
+                    Rule::FunctionCall,
+                ],
+                negatives: vec![element.as_rule()],
+            },
+            element.as_span(),
+        )),
     }
 }

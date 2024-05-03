@@ -73,7 +73,7 @@ pub fn parse_tbt(
     match parse(formula, events_per_seconds.try_into().unwrap(), use_prints) {
         Ok(tbt) => Some(tbt),
         Err(e) => {
-            println!("{}", e.to_string());
+            println!("{e}");
             None
         }
     }
@@ -197,8 +197,8 @@ pub fn evaluate(
     );
 
     let alternative_segmentations = if !lazy_evaluation {
-        if let Some(segmentation_setting) = segmentation_setting {
-            Some(get_alternative_segmentation(
+        segmentation_setting.map(|seg| {
+            get_alternative_segmentation(
                 &tbt,
                 &mut tree_table,
                 &mut formula_table,
@@ -206,11 +206,9 @@ pub fn evaluate(
                 &segmentation,
                 robustness_value,
                 print_leaf_segments_only,
-                segmentation_setting,
-            ))
-        } else {
-            None
-        }
+                seg,
+            )
+        })
     } else {
         None
     };

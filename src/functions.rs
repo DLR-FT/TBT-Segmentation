@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
+use std::fmt;
+
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 /// Func Syntax
@@ -103,65 +105,79 @@ impl Func {
 // toString
 #[allow(dead_code)]
 impl Func {
-    pub fn to_string(&self) -> String {
+    pub fn string_representation(&self) -> String {
         match self {
             Func::Acc(c, names) => names[*c].clone(),
             Func::Number(f) => f.to_string(),
             Func::Add(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_add(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Sub(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_sub(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Pow(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_pow(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Mul(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_mul(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Div(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_div(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Mod(l, r) => format!(
                 "({} {} {})",
-                l.to_string(),
+                l.string_representation(),
                 Func::get_string_mod(),
-                r.to_string()
+                r.string_representation()
             ),
             Func::Min(l, r) => format!(
                 "{}({}, {})",
                 Func::get_string_min(),
-                l.to_string(),
-                r.to_string()
+                l.string_representation(),
+                r.string_representation()
             ),
             Func::Max(l, r) => format!(
                 "{}({}, {})",
                 Func::get_string_max(),
-                l.to_string(),
-                r.to_string()
+                l.string_representation(),
+                r.string_representation()
             ),
-            Func::Sqrt(c) => format!("{}({})", Func::get_string_sqrt(), c.to_string()),
-            Func::Abs(c) => format!("{}({})", Func::get_string_abs(), c.to_string()),
-            Func::RadToDeg(c) => format!("{}({})", Func::get_string_rad_to_deg(), c.to_string()),
-            Func::DegToRad(c) => format!("{}({})", Func::get_string_deg_to_rad(), c.to_string()),
-            Func::Cos(c) => format!("{}({})", Func::get_string_cos(), c.to_string()),
-            Func::Sin(c) => format!("{}({})", Func::get_string_sin(), c.to_string()),
+            Func::Sqrt(c) => format!("{}({})", Func::get_string_sqrt(), c.string_representation()),
+            Func::Abs(c) => format!("{}({})", Func::get_string_abs(), c.string_representation()),
+            Func::RadToDeg(c) => format!(
+                "{}({})",
+                Func::get_string_rad_to_deg(),
+                c.string_representation()
+            ),
+            Func::DegToRad(c) => format!(
+                "{}({})",
+                Func::get_string_deg_to_rad(),
+                c.string_representation()
+            ),
+            Func::Cos(c) => format!("{}({})", Func::get_string_cos(), c.string_representation()),
+            Func::Sin(c) => format!("{}({})", Func::get_string_sin(), c.string_representation()),
         }
+    }
+}
+
+impl fmt::Display for Func {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.string_representation())
     }
 }
 

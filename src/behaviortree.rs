@@ -236,7 +236,7 @@ impl TbtNode {
                 let print_name = if name.is_empty() {
                     name.clone()
                 } else {
-                    format!(" {name}").to_string()
+                    format!(" {name}")
                 };
                 if with_children {
                     format!(

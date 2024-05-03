@@ -63,7 +63,6 @@ impl ProvidesTraceAndTree for UserProvidedFunction {
         } else {
             0.005
         };
-        let events_per_second = (1.0 / frequency) as u64;
-        events_per_second
+        (1.0 / frequency) as u64
     }
 }

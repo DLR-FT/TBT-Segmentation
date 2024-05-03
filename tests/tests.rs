@@ -1679,7 +1679,7 @@ fn test_even() {
                             }
                         }),
                     ),
-                    Stl::neg(Stl::eventually_interval(
+                    Stl::negation(Stl::eventually_interval(
                         1,
                         1,
                         Stl::atomic(vec![signal_name.clone()], Rc::new(|_: &[f32]| 1.0)),
@@ -1688,7 +1688,7 @@ fn test_even() {
                 String::from("even"),
             ),
             TbtNode::leaf(
-                Stl::neg(Stl::eventually_interval(
+                Stl::negation(Stl::eventually_interval(
                     1,
                     1,
                     Stl::atomic(vec![signal_name.clone()], Rc::new(|_: &[f32]| 1.0)),
@@ -1724,7 +1724,7 @@ fn test_even() {
                             }
                         }),
                     ),
-                    Stl::neg(Stl::eventually_interval(
+                    Stl::negation(Stl::eventually_interval(
                         1,
                         1,
                         Stl::atomic(vec![signal_name.clone()], Rc::new(|_: &[f32]| 1.0)),
@@ -1733,7 +1733,7 @@ fn test_even() {
                 String::from("even"),
             ),
             TbtNode::leaf(
-                Stl::neg(Stl::eventually_interval(
+                Stl::negation(Stl::eventually_interval(
                     1,
                     1,
                     Stl::atomic(vec![signal_name.clone()], Rc::new(|_: &[f32]| 1.0)),
