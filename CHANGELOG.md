@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC-BY-NC-ND-4.0
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.0] - 2024-05-05
+## [1.1.0] - 2024-05-03
 
 ### Added 
 - Pest parser

@@ -15,15 +15,25 @@ struct TBTParser;
 pub fn parse(
     formula: String,
     events_per_second: usize,
+    use_prints: bool,
 ) -> Result<TbtNode, pest::error::Error<Rule>> {
     let mut pairs = TBTParser::parse(Rule::Specification, &formula)?;
-    println!("Parsing successful!");
+    if use_prints {
+        println!("Parsing successful!");
+    }
     let spec_pair = pairs.next().unwrap();
     assert!(spec_pair.as_rule() == Rule::Specification);
     let mut spec_iter = spec_pair.into_inner();
     let constant_map = parse_constants(spec_iter.next().unwrap())?;
-    println!("Constants: {:#?}", constant_map);
-    let tbt = parse_tbt(spec_iter.next().unwrap(), events_per_second, &constant_map);
+    if use_prints {
+        println!("Constants: {:#?}", constant_map);
+    }
+    let tbt = parse_tbt(
+        spec_iter.next().unwrap(),
+        events_per_second,
+        &constant_map,
+        use_prints,
+    );
     tbt
 }
 
@@ -51,6 +61,7 @@ fn parse_tbt(
     tbt_pair: pest::iterators::Pair<'_, Rule>,
     events_per_second: usize,
     constant_map: &HashMap<String, f32>,
+    use_prints: bool,
 ) -> Result<TbtNode, pest::error::Error<Rule>> {
     match tbt_pair.as_rule() {
         Rule::Leaf => {
@@ -63,7 +74,7 @@ fn parse_tbt(
             }
             assert!(p.as_rule() == Rule::STL);
             return Ok(TbtNode::leaf(
-                parse_stl(p, events_per_second, constant_map)?,
+                parse_stl(p, events_per_second, constant_map, use_prints)?,
                 name.to_string(),
             ));
         }
@@ -71,7 +82,7 @@ fn parse_tbt(
             // read arguments
             let p = tbt_pair.into_inner().next().unwrap();
             assert!(p.as_rule() == Rule::TBTList);
-            let tbt_list = parse_tbt_list(p, events_per_second, constant_map)?;
+            let tbt_list = parse_tbt_list(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
             return Ok(TbtNode::fallback(tbt_list));
         }
@@ -84,7 +95,7 @@ fn parse_tbt(
             // read arguments
             let p = arguments.next().unwrap();
             assert!(p.as_rule() == Rule::TBTList);
-            let tbt_list = parse_tbt_list(p, events_per_second, constant_map)?;
+            let tbt_list = parse_tbt_list(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
             return Ok(TbtNode::parallel(m, tbt_list));
         }
@@ -93,7 +104,7 @@ fn parse_tbt(
             let p = tbt_pair.into_inner().next().unwrap();
             assert!(p.as_rule() == Rule::TBTList);
             // build TBT Node by stacking sequence nodes
-            let mut tbt_list = parse_tbt_list(p, events_per_second, constant_map)?;
+            let mut tbt_list = parse_tbt_list(p, events_per_second, constant_map, use_prints)?;
             let mut tbt_node = tbt_list[tbt_list.len() - 1].clone();
             tbt_list.reverse();
             for tbt in &tbt_list[1..] {
@@ -116,7 +127,7 @@ fn parse_tbt(
                     || p.as_rule() == Rule::Timeout
                     || p.as_rule() == Rule::Kleene
             );
-            let child = parse_tbt(p, events_per_second, constant_map)?;
+            let child = parse_tbt(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
             return Ok(TbtNode::timeout(t, child));
         }
@@ -135,13 +146,13 @@ fn parse_tbt(
                     || p.as_rule() == Rule::Timeout
                     || p.as_rule() == Rule::Kleene
             );
-            let child = parse_tbt(p, events_per_second, constant_map)?;
+            let child = parse_tbt(p, events_per_second, constant_map, use_prints)?;
             // build TBT Node
             return Ok(TbtNode::kleene(n, child));
         }
         Rule::STL => {
             return Ok(TbtNode::leaf(
-                parse_stl(tbt_pair, events_per_second, constant_map)?,
+                parse_stl(tbt_pair, events_per_second, constant_map, use_prints)?,
                 "".to_string(),
             ))
         } // easy workaround to parse TBT list (parse_tbtlist() already accesses inner and calls parse_tbt which accesses inner again)
@@ -168,10 +179,11 @@ fn parse_tbt_list(
     tbt_pair: pest::iterators::Pair<'_, Rule>,
     events_per_second: usize,
     constant_map: &HashMap<String, f32>,
+    use_prints: bool,
 ) -> Result<Vec<TbtNode>, pest::error::Error<Rule>> {
     let mut tbt_list = vec![];
     for pair in tbt_pair.into_inner() {
-        let tbt = parse_tbt(pair, events_per_second, constant_map)?;
+        let tbt = parse_tbt(pair, events_per_second, constant_map, use_prints)?;
         tbt_list.push(tbt);
     }
     assert!(tbt_list.len() > 0);
@@ -182,6 +194,7 @@ fn parse_stl(
     stl_pair: pest::iterators::Pair<'_, Rule>,
     events_per_second: usize,
     constant_map: &HashMap<String, f32>,
+    use_prints: bool,
 ) -> Result<Stl, pest::error::Error<Rule>> {
     assert!(stl_pair.as_rule() == Rule::STL);
     // Precedence
@@ -216,7 +229,12 @@ fn parse_stl(
                 ops.push((element.as_str().to_owned(), 1, 0));
             }
         } else {
-            children.push(parse_stl_element(element, events_per_second, constant_map)?);
+            children.push(parse_stl_element(
+                element,
+                events_per_second,
+                constant_map,
+                use_prints,
+            )?);
         }
         is_op = !is_op;
     }
@@ -262,6 +280,7 @@ fn parse_stl_element(
     stl_element_pair: pest::iterators::Pair<'_, Rule>,
     events_per_second: usize,
     constant_map: &HashMap<String, f32>,
+    use_prints: bool,
 ) -> Result<Stl, pest::error::Error<Rule>> {
     assert!(stl_element_pair.as_rule() == Rule::STL_element);
     let pair = stl_element_pair.into_inner().next().unwrap();
@@ -304,11 +323,13 @@ fn parse_stl_element(
                 let value_names_cpy = value_names.clone();
                 let ap = Stl::atomic(value_names, f);
                 if let Stl::Atomic(i, _, _) = ap {
-                    println!(
-                        "AP({i}) {function_name} ({:?}): {}\n",
-                        value_names_cpy,
-                        print_fn.to_string()
-                    );
+                    if use_prints {
+                        println!(
+                            "AP({i}) {function_name} ({:?}): {}\n",
+                            value_names_cpy,
+                            print_fn.to_string()
+                        );
+                    }
                 }
                 return Ok(ap);
             }
@@ -316,7 +337,12 @@ fn parse_stl_element(
         Rule::STL_unary_op => {
             let mut p_iter = pair.into_inner();
             let operation = p_iter.next().unwrap();
-            let stl_child = parse_stl(p_iter.next().unwrap(), events_per_second, constant_map)?;
+            let stl_child = parse_stl(
+                p_iter.next().unwrap(),
+                events_per_second,
+                constant_map,
+                use_prints,
+            )?;
             match operation.as_rule() {
                 Rule::STLNeg => return Ok(Stl::neg(stl_child)),
                 Rule::Next => return Ok(Stl::next(stl_child)),
@@ -361,6 +387,7 @@ fn parse_stl_element(
                 pair.into_inner().next().unwrap(),
                 events_per_second,
                 constant_map,
+                use_prints,
             );
         }
         _ => {

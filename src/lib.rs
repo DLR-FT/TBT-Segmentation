@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 mod user_defined {
-    pub mod get_trace_and_tree;
+    pub mod get_trace;
 }
 pub mod behaviortree;
 pub mod command_line_parser;
@@ -61,12 +61,16 @@ pub fn parse_command_line() -> CommandLineArguments {
 /// # Arguments
 /// * `specification` - Location of specification
 /// * `number_skipped_entries` - used for subsampling ie number of entries in the logfile that can be skipped
-pub fn parse_tbt(specification: &str, number_skipped_entries: usize) -> Option<TbtNode> {
+pub fn parse_tbt(
+    specification: &str,
+    number_skipped_entries: usize,
+    use_prints: bool,
+) -> Option<TbtNode> {
     let events_per_seconds = UserProvidedFunction::get_events_per_second(number_skipped_entries);
     let formula = fs::read_to_string(specification).unwrap();
     tbt_node_reset_count();
     stl_reset_count();
-    match parse(formula, events_per_seconds.try_into().unwrap()) {
+    match parse(formula, events_per_seconds.try_into().unwrap(), use_prints) {
         Ok(tbt) => Some(tbt),
         Err(e) => {
             println!("{}", e.to_string());
@@ -92,7 +96,7 @@ pub fn get_tbt_and_trace(
     sub_sampling: bool,
 ) -> (Trace, Tbt) {
     let trace = UserProvidedFunction::get_trace(logfile, number_skipped_entries);
-    let tbt = Tbt::new(parse_tbt(specification, number_skipped_entries).unwrap());
+    let tbt = Tbt::new(parse_tbt(specification, number_skipped_entries, true).unwrap());
     println!(
         "SETTING:\n\tLogfile: {logfile}\n\tApproximations: lazy evaluation={lazy_evaluation}, subsampling={sub_sampling}(delta: {number_skipped_entries})\n\tTrace length: {}\n\nTemporal behavior tree:\n{}\n",
         trace.0,
@@ -110,7 +114,7 @@ pub fn get_best_number_skipped_entries(
     sub_sampling: bool,
 ) -> (usize, f32) {
     let trace = UserProvidedFunction::get_trace(logfile, 0);
-    let tree = parse_tbt(specification, 0).unwrap();
+    let tree = parse_tbt(specification, 0, false).unwrap();
     let (number_skipped_entries, delta_rho_skipped) = if sub_sampling {
         let (number_skipped_entries, (interval_min, interval_max), (_, _)) =
             get_best_number_skipped(trace, tree);
