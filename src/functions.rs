@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+// SPDX-License-Identifier: Apache-2.0
+
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 /// Func Syntax

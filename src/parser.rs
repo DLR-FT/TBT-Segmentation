@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+// SPDX-License-Identifier: Apache-2.0
+
 use crate::{behaviortree::TbtNode, functions::Func, stl::Stl};
 use core::panic;
 use pest::{error::ErrorVariant, Parser};
