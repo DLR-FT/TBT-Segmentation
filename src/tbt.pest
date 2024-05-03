@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
-Specification = { Constants ~ TBT }
+Specification = { COMMENT ~ Constants ~ TBT }
 
 // Constants
 Constants = { Constant* } 
@@ -68,3 +68,4 @@ Float = { ("-")? ~ Number ~ ("." ~ Number)? }
 Word = { Letter~(Letter | Digit | Under)* }
 Number = { '0'..'9'+ }
 WHITESPACE = _{ " " | "\t" | "\r" | "\n"}
+COMMENT = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~(!("\n")~ANY)*~ "\n"? ) }

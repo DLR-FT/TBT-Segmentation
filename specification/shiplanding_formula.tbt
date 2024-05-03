@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+// SPDX-License-Identifier: Apache-2.0
+
 Deg45_HeightAboveShip = 20.0;
 Deg45_DistanceToShip = 30.0;
 Deg45_AngleToShip = 135.0;
