@@ -10,6 +10,8 @@ pub enum Func {
     Mul(Box<Func>, Box<Func>),
     Div(Box<Func>, Box<Func>),
     Mod(Box<Func>, Box<Func>),
+    Min(Box<Func>, Box<Func>),
+    Max(Box<Func>, Box<Func>),
     Sqrt(Box<Func>),
     Abs(Box<Func>),
     RadToDeg(Box<Func>),
@@ -44,6 +46,12 @@ impl Func {
     pub fn modulo(l: Func, r: Func) -> Func {
         Func::Mod(Box::new(l), Box::new(r))
     }
+    pub fn min(l: Func, r: Func) -> Func {
+        Func::Min(Box::new(l), Box::new(r))
+    }
+    pub fn max(l: Func, r: Func) -> Func {
+        Func::Max(Box::new(l), Box::new(r))
+    }
     pub fn sqrt(c: Func) -> Func {
         Func::Sqrt(Box::new(c))
     }
@@ -74,9 +82,11 @@ impl Func {
             Func::Add(l, r) => l.eval(values) + r.eval(values),
             Func::Sub(l, r) => l.eval(values) - r.eval(values),
             Func::Pow(l, r) => l.eval(values).powf(r.eval(values)),
-            Func::Mul(l, r) => l.eval(values) + r.eval(values),
-            Func::Div(l, r) => l.eval(values) + r.eval(values),
-            Func::Mod(l, r) => l.eval(values) + r.eval(values),
+            Func::Mul(l, r) => l.eval(values) * r.eval(values),
+            Func::Div(l, r) => l.eval(values) / r.eval(values),
+            Func::Mod(l, r) => l.eval(values) % r.eval(values),
+            Func::Min(l, r) => f32::min(l.eval(values), r.eval(values)),
+            Func::Max(l, r) => f32::max(l.eval(values), r.eval(values)),
             Func::Sqrt(c) => f32::sqrt(c.eval(values)),
             Func::Abs(c) => f32::abs(c.eval(values)),
             Func::RadToDeg(c) => f32::to_degrees(c.eval(values)),
@@ -130,6 +140,18 @@ impl Func {
                 Func::get_string_mod(),
                 r.to_string()
             ),
+            Func::Min(l, r) => format!(
+                "{}({}, {})",
+                Func::get_string_min(),
+                l.to_string(),
+                r.to_string()
+            ),
+            Func::Max(l, r) => format!(
+                "{}({}, {})",
+                Func::get_string_max(),
+                l.to_string(),
+                r.to_string()
+            ),
             Func::Sqrt(c) => format!("{}({})", Func::get_string_sqrt(), c.to_string()),
             Func::Abs(c) => format!("{}({})", Func::get_string_abs(), c.to_string()),
             Func::RadToDeg(c) => format!("{}({})", Func::get_string_rad_to_deg(), c.to_string()),
@@ -158,6 +180,12 @@ impl Func {
     }
     pub fn get_string_mod() -> String {
         "%".to_string()
+    }
+    pub fn get_string_min() -> String {
+        "min".to_string()
+    }
+    pub fn get_string_max() -> String {
+        "max".to_string()
     }
     pub fn get_string_sqrt() -> String {
         "sqrt".to_string()

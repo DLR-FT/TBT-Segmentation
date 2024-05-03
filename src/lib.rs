@@ -1,36 +1,19 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
-mod tree {
-    pub mod shipdeck_landing {
-        pub mod get_trace_and_tree;
-        pub mod atomics {
-            pub mod combined;
-            pub mod constants;
-            pub mod descend_touchdown;
-            pub mod heading_aligned;
-            pub mod heading_obliqued;
-            pub mod in_position;
-            pub mod move_to_touchdown;
-            pub mod velocity_aligned;
-        }
-        pub mod deg45_maneuver;
-        pub mod lateral_maneuver;
-        pub mod oblique_maneuver;
-        pub mod straight_maneuver;
-    }
+mod user_defined {
+    pub mod get_trace_and_tree;
 }
 pub mod behaviortree;
-mod command_line_parser;
+pub mod command_line_parser;
 mod csv_reader;
 mod functions;
 mod parser;
-mod stl;
+pub mod stl;
 mod table;
-#[cfg(test)]
-mod tests;
 use behaviortree::print_segmentation;
 use behaviortree::tbt_node_reset_count;
+use behaviortree::ClonedSegmentation;
 use behaviortree::Segmentation;
 use behaviortree::Tbt;
 use behaviortree::TbtNode;
@@ -40,6 +23,7 @@ use csv_reader::get_best_number_skipped;
 use num_format::{Locale, ToFormattedString};
 use parser::parse;
 use std::collections::HashMap;
+use std::fs;
 use std::rc::Rc;
 use std::time::SystemTime;
 use stl::stl_reset_count;
@@ -53,8 +37,8 @@ use table::Table;
 struct UserProvidedFunction;
 
 trait ProvidesTraceAndTree {
+    fn get_events_per_second(number_skipped_entries: usize) -> u64;
     fn get_trace(logfile: &str, number_skipped_entries: usize) -> Trace;
-    fn get_tree(number_skipped_entries: usize) -> Tbt;
 }
 
 /// A trace consists of the length of the trace (usize) and a hashmap
@@ -71,10 +55,18 @@ pub fn parse_command_line() -> CommandLineArguments {
     command_line_parser::parse_command_line()
 }
 
-pub fn parse_tbt(formula: String, events_per_second: usize) -> Option<TbtNode> {
+/**********************************
+ * TBT Parser
+ **********************************/
+/// # Arguments
+/// * `specification` - Location of specification
+/// * `number_skipped_entries` - used for subsampling ie number of entries in the logfile that can be skipped
+pub fn parse_tbt(specification: &str, number_skipped_entries: usize) -> Option<TbtNode> {
+    let events_per_seconds = UserProvidedFunction::get_events_per_second(number_skipped_entries);
+    let formula = fs::read_to_string(specification).unwrap();
     tbt_node_reset_count();
     stl_reset_count();
-    match parse(formula, events_per_second) {
+    match parse(formula, events_per_seconds.try_into().unwrap()) {
         Ok(tbt) => Some(tbt),
         Err(e) => {
             println!("{}", e.to_string());
@@ -87,18 +79,20 @@ pub fn parse_tbt(formula: String, events_per_second: usize) -> Option<TbtNode> {
  * Returns TBT and Trace
  **********************************/
 /// # Arguments
+/// * `specification` - Location of specification
 /// * `logfile` - Location of logfile
 /// * `number_skipped_entries` - used for subsampling ie number of entries in the logfile that can be skipped
 /// * `lazy_evaluation` - enables/disables lazy evaluation
 /// * `sub_sampling` - enables/disables sub sampling
 pub fn get_tbt_and_trace(
+    specification: &str,
     logfile: &str,
     number_skipped_entries: usize,
     lazy_evaluation: bool,
     sub_sampling: bool,
 ) -> (Trace, Tbt) {
     let trace = UserProvidedFunction::get_trace(logfile, number_skipped_entries);
-    let tbt = UserProvidedFunction::get_tree(number_skipped_entries);
+    let tbt = Tbt::new(parse_tbt(specification, number_skipped_entries).unwrap());
     println!(
         "SETTING:\n\tLogfile: {logfile}\n\tApproximations: lazy evaluation={lazy_evaluation}, subsampling={sub_sampling}(delta: {number_skipped_entries})\n\tTrace length: {}\n\nTemporal behavior tree:\n{}\n",
         trace.0,
@@ -110,9 +104,13 @@ pub fn get_tbt_and_trace(
 /*******************************************************
  * Get best number skipped entries by analyzing logfile
  *******************************************************/
-pub fn get_best_number_skipped_entries(logfile: &str, sub_sampling: bool) -> (usize, f32) {
+pub fn get_best_number_skipped_entries(
+    specification: &str,
+    logfile: &str,
+    sub_sampling: bool,
+) -> (usize, f32) {
     let trace = UserProvidedFunction::get_trace(logfile, 0);
-    let tree = UserProvidedFunction::get_tree(0).tree;
+    let tree = parse_tbt(specification, 0).unwrap();
     let (number_skipped_entries, delta_rho_skipped) = if sub_sampling {
         let (number_skipped_entries, (interval_min, interval_max), (_, _)) =
             get_best_number_skipped(trace, tree);
@@ -149,7 +147,7 @@ pub fn evaluate(
     print_leaf_segments_only: bool,
     segmentation_setting: Option<SegmentationSetting>,
     debug: bool,
-) -> f32 {
+) -> (f32, ClonedSegmentation, Option<Vec<ClonedSegmentation>>) {
     // MEMORY ALLOCATIONS
     let mut tree_table = Table::new(Tbt::get_number_nodes(), trace.0);
     println!(
@@ -194,9 +192,9 @@ pub fn evaluate(
         print_leaf_segments_only,
     );
 
-    if !lazy_evaluation {
+    let alternative_segmentations = if !lazy_evaluation {
         if let Some(segmentation_setting) = segmentation_setting {
-            get_alternative_segmentation(
+            Some(get_alternative_segmentation(
                 &tbt,
                 &mut tree_table,
                 &mut formula_table,
@@ -205,10 +203,18 @@ pub fn evaluate(
                 robustness_value,
                 print_leaf_segments_only,
                 segmentation_setting,
-            );
+            ))
+        } else {
+            None
         }
-    }
-    robustness_res
+    } else {
+        None
+    };
+    let segmentation = segmentation
+        .into_iter()
+        .map(|(node, lower, upper, robustness)| (node.clone(), lower, upper, robustness))
+        .collect();
+    (robustness_res, segmentation, alternative_segmentations)
 }
 
 /***********************
@@ -285,8 +291,8 @@ pub fn get_alternative_segmentation(
     robustness_value: f32,
     print_leaf_segments_only: bool,
     segmentation_setting: SegmentationSetting,
-) {
-    let _other_segmentations = tbt.tree.get_alternative_segmentation(
+) -> Vec<ClonedSegmentation> {
+    let other_segmentations = tbt.tree.get_alternative_segmentation(
         tree_table,
         formula_table,
         trace,
@@ -298,4 +304,12 @@ pub fn get_alternative_segmentation(
         segmentation_setting.amount,
         print_leaf_segments_only,
     );
+    other_segmentations
+        .into_iter()
+        .map(|(_, v)| {
+            v.into_iter()
+                .map(|(node, lower, upper, robustness)| (node.clone(), lower, upper, robustness))
+                .collect()
+        })
+        .collect()
 }

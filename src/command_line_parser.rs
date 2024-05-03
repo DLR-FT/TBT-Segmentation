@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 pub struct CommandLineArguments {
+    pub specification: String,
     pub logfile: String,
     pub lazy_evaluation: bool,
     pub sub_sampling: bool,
@@ -10,6 +11,7 @@ pub struct CommandLineArguments {
     pub segmentation_setting: Option<SegmentationSetting>,
 }
 
+#[derive(Clone)]
 pub struct SegmentationSetting {
     pub tau_dif: usize,
     pub rho_dif: f32,
@@ -18,6 +20,7 @@ pub struct SegmentationSetting {
 
 impl CommandLineArguments {
     fn new(
+        specification: String,
         logfile: String,
         lazy_evaluation: bool,
         sub_sampling: bool,
@@ -26,6 +29,7 @@ impl CommandLineArguments {
         segmentation_setting: Option<SegmentationSetting>,
     ) -> CommandLineArguments {
         CommandLineArguments {
+            specification,
             logfile,
             lazy_evaluation,
             sub_sampling,
@@ -43,6 +47,13 @@ pub fn parse_command_line() -> CommandLineArguments {
         .about("Computes robustness and segmentation.")
         .author(clap::crate_authors!("\n"));
     // Define the name command line option
+    let specification = clap::Arg::with_name("specification")
+        .required(true)
+        .short("s")
+        .long("spec")
+        .takes_value(true)
+        .value_name("FILE")
+        .help("Get specification location");
     let logfile = clap::Arg::with_name("logfile")
         .required(true)
         .short("f")
@@ -58,7 +69,7 @@ pub fn parse_command_line() -> CommandLineArguments {
         .help("Activates lazy evaluation");
     let sub_sampling = clap::Arg::with_name("sub_sampling")
         .required(false)
-        .short("s")
+        .short("u")
         .long("sampling")
         .takes_value(false)
         .help("Activates subsampling");
@@ -99,6 +110,7 @@ pub fn parse_command_line() -> CommandLineArguments {
         .help("Specifies whether only leaf nodes of a segmentation shall be printed");
     // Add arguments to the app to be parsed
     let app = app
+        .arg(specification)
         .arg(logfile)
         .arg(lazy_evaluation)
         .arg(sub_sampling)
@@ -110,6 +122,10 @@ pub fn parse_command_line() -> CommandLineArguments {
     // Extract the matches
     let matches = app.get_matches();
     // Extract data
+    let specification = matches
+        .value_of("specification")
+        .expect("This can't be None, since it is required")
+        .to_string();
     let logfile = matches
         .value_of("logfile")
         .expect("This can't be None, since it is required")
@@ -144,6 +160,7 @@ pub fn parse_command_line() -> CommandLineArguments {
     };
 
     CommandLineArguments::new(
+        specification,
         logfile,
         lazy_evaluation,
         sub_sampling,

@@ -36,8 +36,8 @@ Globally_interval = {"[" ~Number ~ ".." ~ Number ~"]" }
 
 // Atomic propositions
 Function = { Function_element ~ (Operation ~ Function_element)* }
-Function_element = { Word | Float |  FnBrackets | FunctionCalls}
-FunctionCalls = { Fn~"("~Function~")"} 
+Function_element = { Word | Float |  FnBrackets | FunctionCall}
+FunctionCall = { UFn~"("~Function~")" | BFn~"("~ Function ~ "," ~ Function ~")"} 
 FnBrackets = { "(" ~ Function ~ ")" }
 Operation = _{ Add | Subtract | Power | Multiply | Divide | Mod }
     Add      = { "+"  }
@@ -46,13 +46,16 @@ Operation = _{ Add | Subtract | Power | Multiply | Divide | Mod }
     Multiply = { "*"  }
     Divide   = { "/"  }
     Mod      = { "%"  }
-Fn = { Root | Abs | RadToDeg | DegToRad | Cos | Sin}
+UFn = { Root | Abs | RadToDeg | DegToRad | Cos | Sin}
     Root     = { "!sqrt" }
     Abs     = { "!abs" }
     RadToDeg     = { "!radToDeg" }
     DegToRad     = { "!degToRad" }
     Cos     = { "!cos" }
     Sin     = { "!sin" }
+BFn = { Min | Max }
+    Min     = { "!min" }
+    Max     = { "!max" }
 
 // Symbols
 Letter = _{ 'a'..'z' | 'A'..'Z'}

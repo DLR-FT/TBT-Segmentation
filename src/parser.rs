@@ -24,7 +24,6 @@ pub fn parse(
     let constant_map = parse_constants(spec_iter.next().unwrap())?;
     println!("Constants: {:#?}", constant_map);
     let tbt = parse_tbt(spec_iter.next().unwrap(), events_per_second, &constant_map);
-    println!("{:?}", tbt.clone()?.pretty_print(true, 0));
     tbt
 }
 
@@ -53,7 +52,6 @@ fn parse_tbt(
     events_per_second: usize,
     constant_map: &HashMap<String, f32>,
 ) -> Result<TbtNode, pest::error::Error<Rule>> {
-    println!("TBT Parsing: {:?}", tbt_pair.as_rule());
     match tbt_pair.as_rule() {
         Rule::Leaf => {
             let mut leaf_tokens = tbt_pair.into_inner();
@@ -267,12 +265,11 @@ fn parse_stl_element(
 ) -> Result<Stl, pest::error::Error<Rule>> {
     assert!(stl_element_pair.as_rule() == Rule::STL_element);
     let pair = stl_element_pair.into_inner().next().unwrap();
-    println!("STL Element Parsing: {:?}", pair.as_rule());
     match pair.as_rule() {
         Rule::Atomic => {
             let mut p = pair.into_inner();
             // read word, arguments, and function
-            let _function_name = p.next().unwrap().as_str();
+            let function_name = p.next().unwrap().as_str();
             let mut value_names = Vec::<String>::new();
             let arguments = p.next().unwrap();
             let arguments_rule = arguments.as_rule();
@@ -304,9 +301,14 @@ fn parse_stl_element(
                 let func = parse_fn(p.next().unwrap(), &value_names, constant_map)?;
                 let print_fn = func.clone();
                 let f = Rc::new(move |values: &[f32]| func.eval(values));
+                let value_names_cpy = value_names.clone();
                 let ap = Stl::atomic(value_names, f);
                 if let Stl::Atomic(i, _, _) = ap {
-                    println!("AP({i}) {_function_name}: {}\n", print_fn.to_string());
+                    println!(
+                        "AP({i}) {function_name} ({:?}): {}\n",
+                        value_names_cpy,
+                        print_fn.to_string()
+                    );
                 }
                 return Ok(ap);
             }
@@ -457,7 +459,6 @@ fn parse_function_element(
 ) -> Result<Func, pest::error::Error<Rule>> {
     let mut p_iter = pair.into_inner();
     let element = p_iter.next().unwrap();
-    println!("Function element: {:?}", element.as_rule());
     match element.as_rule() {
         Rule::Word => {
             let w = element.as_str().trim();
@@ -493,7 +494,7 @@ fn parse_function_element(
                 constant_map,
             );
         }
-        Rule::FunctionCalls => {
+        Rule::FunctionCall => {
             let mut p_iter = element.into_inner();
             let fn_call = p_iter.next().unwrap().into_inner().next().unwrap();
             let child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
@@ -504,6 +505,14 @@ fn parse_function_element(
                 Rule::DegToRad => return Ok(Func::deg_to_rad(child)),
                 Rule::Cos => return Ok(Func::cos(child)),
                 Rule::Sin => return Ok(Func::sin(child)),
+                Rule::Min => {
+                    let r_child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
+                    return Ok(Func::min(child, r_child));
+                }
+                Rule::Max => {
+                    let r_child = parse_fn(p_iter.next().unwrap(), arguments, constant_map)?;
+                    return Ok(Func::max(child, r_child));
+                }
                 _ => {
                     return Err(pest::error::Error::new_from_span(
                         ErrorVariant::ParsingError {
@@ -514,6 +523,8 @@ fn parse_function_element(
                                 Rule::DegToRad,
                                 Rule::Cos,
                                 Rule::Sin,
+                                Rule::Min,
+                                Rule::Max,
                             ],
                             negatives: vec![fn_call.as_rule()],
                         },
@@ -529,7 +540,7 @@ fn parse_function_element(
                         Rule::Word,
                         Rule::Float,
                         Rule::FnBrackets,
-                        Rule::FunctionCalls,
+                        Rule::FunctionCall,
                     ],
                     negatives: vec![element.as_rule()],
                 },
