@@ -6,6 +6,7 @@ use std::{collections::HashMap, time::SystemTime};
 
 type SubtreeIdx = usize;
 pub type Segmentation<'a> = Vec<(&'a TbtNode, usize, usize, f32)>;
+pub type ClonedSegmentation = Vec<(TbtNode, usize, usize, f32)>;
 static mut NODECOUNT: SubtreeIdx = 0;
 /// Gets formula count
 fn gnc() -> SubtreeIdx {
@@ -232,10 +233,19 @@ impl TbtNode {
         let indent = " ".repeat(line_shift);
         match self {
             TbtNode::Leaf(index, formula, name) => {
-                if with_children {
-                    format!("{}Leaf({index} {name})[{}]", indent, formula.pretty_print())
+                let print_name = if name.is_empty() {
+                    name.clone()
                 } else {
-                    format!("{}Leaf({index} {name})", indent)
+                    format!(" {name}")
+                };
+                if with_children {
+                    format!(
+                        "{}Leaf({index}{print_name})[{}]",
+                        indent,
+                        formula.pretty_print()
+                    )
+                } else {
+                    format!("{}Leaf({index}{print_name})", indent)
                 }
             }
             TbtNode::Fallback(index, subtrees) => {
@@ -1228,7 +1238,7 @@ impl TbtNode {
         let mut res_segmentation = Vec::new();
         let mut segmentations = vec![best_segmentation.to_vec()];
         for i in 0..number {
-            println!("Got {}/{} alternative segmentations.", i, number);
+            println!("Got {}/{} alternative segmentations.", i + 1, number);
             let segmentation = self.get_segmentation_under_restriction(
                 tree_table,
                 formula_table,

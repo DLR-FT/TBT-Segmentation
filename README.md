@@ -48,18 +48,17 @@ It is also useful to visualize the resulting segmentation, as shown below for th
 ## Getting Started
 Requires Rust to compile source code and Python for visualization.
 1. [Install Rust](https://www.rust-lang.org/)
-1. Specify a TBT, e.g., as done [here](src/tree/shipdeck_landing/lateral_maneuver.rs)
-1. [Provide a Trace by implementing ``get_trace``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
-1. [Provide a Tree by implementing ``get_tree``](src/tree/shipdeck_landing/get_trace_and_tree.rs)
-1. [Replace the ``user_defined``-function by your own](src/main.rs)
-1. Call ``cargo build`` or ``cargo build --release`` 
-1. Call ``cargo run -- --help`` to get help on the command-line-usage
-1. Call ``cargo test`` to see if the tests are successful
+1. Specify a TBT, e.g., as done [here](specification/shiplanding_formula.tbt). The grammar can be found [here](src/tbt.pest)
+1. [Provide a Trace by implementing ``get_trace``](src/user_defined/get_trace.rs)
+2. [Replace the ``user_defined``-function by your own (Line 5)](src/lib.rs)
+3. Call ``cargo build`` or ``cargo build --release`` 
+4. Call ``cargo run -- --help`` to get help on the command-line-usage
+5. Call ``cargo test`` to see if the tests are successful
  
 For instance:
 
-``cargo run --release -- -s -f ./res/logs_wind_front_Lateral/`` runs segmentation using subsampling on a provided logfile. 
-For this example, ``get_trace`` and ``get_tree`` is already provided.
+``cargo run --release -- -u -s specification/shiplanding_formula_combined.tbt -f ./res/logs_wind_front_Lateral/`` runs segmentation using subsampling on a provided logfile. 
+For this example, ``get_trace`` is already provided.
 
 Using the [visualization script](scripts/visualize_ship_landing.py), we can easily plot a segmentation by, e.g., ``python visualize_ship_landing.py plot -b Lateral -s 5000 10000 20000 -e 0 -l ../res/logs_wind_front_Lateral/`` where ``5000, 10000, 20000`` represent beginning of segments (omitting 0), ``-b`` states the expected behavior and is used to plot the dotted lines, and ``-e`` represents the number of skipped entries due to subsampling. There is also the option to save a plot to inspect it in a docker environment using ``-p``.
 We can also replay the flight by, e.g.,  ``python visualize_ship_landing.py live -l ../res/logs_wind_front_Lateral/ -b Lateral -f 0.005 0.1 2.0``.
@@ -78,20 +77,23 @@ For more information call ``python visualize_ship_landing.py --help``.
   - [infer_parameters_visualization.py](scripts/infer_parameters_visualization.py) is used for the [run.sh](scripts/run.sh) script to extract the segments from the produced output files
   - [run.sh](scripts/run.sh) is a script that executes our segmentation tool on all the available [logfiles](res) and produces png files to further analyze ([infer_parameters_visualization.py](scripts/infer_parameters_visualization.py))
   - [visualize_ship_landing.py](scripts/visualize_ship_landing.py) is a script that is used to produced the png files that show the flight and the computed segments
+- [specification](specification) contains some example specifications  
 - [src](src) contains the source code  
     - [lib.rs](src/lib.rs) provides a package of TBTs functions that can be used by others 
-      - It requires a user to provide two functions [get_trace()](src/lib.rs) and [get_tree()](src/lib.rs)
-      - This repository provides these functions for the ship landing: [tree/](src/tree/)
+      - It requires a user to provide two functions [get_trace()](src/lib.rs) and [get_events_per_second()](src/lib.rs)
+      - This repository provides these functions for the ship landing: [user_defined/](src/user_defined/)
     - [main.rs](src/main.rs) is an example that uses [lib.rs](src/lib.rs) and the user-defined functions [tree/](src/tree/)
     - [stl.rs](src/stl.rs) provides the syntax and semantics for STL formulas
     - [behaviortree.rs](src/behaviortree.rs) provides the syntax and semantics for TBTs
     - [command_line_parser.rs](src/command_line_parser.rs) is used to interface with the command line
+    - [functions.rs](src/functions.rs) is used to represent atomic functions that are used by the TBT parser
+    - [parser.rs](src/parser.rs) is a TBT parser that reads a .tbt-file and produces a ```Tree```
+    - [tbt.pest](src/tbt.pest) represents the grammar used by the TBT parser
     - [csv_reader.rs](src/csv_reader.rs) represent auxiliary functions such as reading a csv-file
     - [table.rs](src/table.rs) represents the main data structure for the dynamic programming
-    - [test.rs](src/tests.rs) contains multiple test cases that can be executed to test whether the compilation works
-    - [tree/](src/tree/) is an example implementation for the *UserProvidedFunctions* required by [lib.rs](src/lib.rs)
-      - [atomics/](src/tree/) are implemented function that take trace data (eg provided by reading a csv-file) and output a robustness verdict.
-      - [*_maneuver.rs](src/tree/) are instances of TBTs using [behaviortree.rs](src/behaviortree.rs)
+    - [user_defined/](src/user_defined/) is an example implementation for the *UserProvidedFunctions* required by [lib.rs](src/lib.rs)
+      - [get_trace.rs](src/user_defined/get_trace.rs) reads the trace data used in the experiment (ie it reads a csv-file and provides a ``Trace``)
+- [tests](tests/) contains multiple test cases that can be executed to test whether the compilation works
 - [Dockerfile](Dockerfile) just c/p the whole repository and builds it to produce a docker container that then can run [run.sh](scripts/run.sh) to procude the HSCC artifacts
 
 > To use the TBT tool for a different use-case, a user needs to provide the *UserProvidedFunction* ([get_trace()](src/lib.rs) and [get_tree()](src/lib.rs)) similar to what has been done here for the ship landing ([tree/](src/tree/)). I.e., he/she needs to extract logdata into a *Trace* struct and needs to build the TBT.
@@ -119,9 +121,11 @@ STL ``S:=``
 - ``GloballyInterval(l, u, S)``: Always within ``l`` and ``u`` steps, the subformula must be satisfied.
 - ``UntilInterval(l, u, S_1, S_2)``: Within ``l`` and ``u`` steps, the subformula ``S_1`` must be satisfied *until* ``S_2`` is satisfied.
 
-The TBT operators are defined [here](src/behaviortree.rs) and the STL operators are defined [here](src/stl.rs).
+The TBT operators are defined [here](src/behaviortree.rs) and the STL operators are defined [here](src/stl.rs). 
 
-For more details, we refer to the paper. TODO: add paper link here
+A TBT parser is implemented that is based on this [grammar](src/tbt.pest).
+
+For more details, we refer to the [paper](https://doi.org/10.1145/3641513.3650180).
 
 ## Docker Environment
 1. Install [Docker](https://docs.docker.com/engine/install/)
@@ -143,7 +147,16 @@ For more details, we refer to the paper. TODO: add paper link here
 > Also, there is a line ending issue, when building the docker image in a Windows environment. We recommend building the image on a Linux machine to avoid this issue (WSL is an option for Windows systems).
  
 ## How to Interpret the Output Format
-Running e.g. `cargo run --release -- -l -c -s -f /<your-foulder>/TBT-Segmentation/res/logs_wind_front_Lateral/` produces an output that contains the following lines:
+Running e.g. `cargo run --release -- -l -c -u -s <your-folder>/TBT-Segmentation/specification/shiplanding_formula_combined.tbt -f <your-foulder>/TBT-Segmentation/res/logs_wind_front_Lateral/` produces an output that contains the following lines:
+
+>Constants: {
+>  "Lateral_AngleToShip": 90.0, ... }
+
+that represent all read constants in the provided TBT specification.
+
+> AP(0) in_pos (["uas_x", "uas_y", "uas_z", "ship_x", "ship_y", "ship_z", "ship_heading"]): (2.5 - sqrt((((((ship_x + (30 * cos((deg_to_rad(135) + ship_heading)))) - uas_x) ^ 2) + (((ship_y + (30 * sin((deg_to_rad(135) + ship_heading)))) - uas_y) ^ 2)) + (((ship_z + 20) - uas_z) ^ 2))))
+
+a sequence of the parsed atomic propositions. 
 
 > SETTING: <br>
 > Logfile: /root/canbedeleted/TBT-Segmentation/res/logs_wind_front_Lateral/ <br>

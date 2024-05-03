@@ -1,0 +1,71 @@
+// SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+// SPDX-License-Identifier: Apache-2.0
+
+Specification = { COMMENT ~ Constants ~ TBT }
+
+// Constants
+Constants = { Constant* } 
+Constant = { Word ~ "=" ~ Float ~ ";"}
+
+// TBT operators
+TBT = _{ Leaf | Fallback | Parallel | Sequence | Timeout | Kleene }
+TBTList = { "(" ~(TBT ~("," ~TBT)*)? ~")"}
+Leaf = { ("'"~ Word ~"'")? ~ STL }
+Fallback = { "?" ~ TBTList }
+Parallel = { "=>" ~ Number ~ TBTList}
+Sequence = { "->" ~ TBTList}
+Timeout = { "@" ~ Number ~ TBT }
+Kleene = { "*" ~ Number ~ TBT }
+
+// STL operators
+STL = { STL_element ~ (STL_OP_BINARY ~ STL_element)* }
+STL_element = { Atomic | Brackets | STL_unary_op }
+STL_unary_op = { STL_OP_UNARY ~ STL }
+STL_OP_BINARY = _{ Conjunction | Disjunction | Until | Until_interval }
+STL_OP_UNARY = _{ STLNeg | Next | Eventually | Globally | Eventually_interval | Globally_interval }
+Atomic = { Word ~ Arguments ~ "["~ Function ~"]"  }
+Arguments = { "(" ~(Word ~("," ~Word)*)? ~")" }
+Brackets = { "(" ~ STL ~ ")" }
+Conjunction = { "&" }
+Disjunction = { "|" }
+Until = { "U" }
+Until_interval = { "IU("~ Number ~ ".." ~ Number ~ ")" }
+STLNeg = { "!" | "¬" }
+Next = { "O" }
+Eventually = {"<>" }
+Globally = { "[]" }
+Eventually_interval = {"<" ~Number ~ ".." ~ Number ~">" }
+Globally_interval = {"[" ~Number ~ ".." ~ Number ~"]" }
+
+// Atomic propositions
+Function = { Function_element ~ (Operation ~ Function_element)* }
+Function_element = { Word | Float |  FnBrackets | FunctionCall}
+FunctionCall = { UFn~"("~Function~")" | BFn~"("~ Function ~ "," ~ Function ~")"} 
+FnBrackets = { "(" ~ Function ~ ")" }
+Operation = _{ Add | Subtract | Power | Multiply | Divide | Mod }
+    Add      = { "+"  }
+    Subtract = { "-"  }
+    Power    = { "^" }
+    Multiply = { "*"  }
+    Divide   = { "/"  }
+    Mod      = { "%"  }
+UFn = { Root | Abs | RadToDeg | DegToRad | Cos | Sin}
+    Root     = { "!sqrt" }
+    Abs     = { "!abs" }
+    RadToDeg     = { "!radToDeg" }
+    DegToRad     = { "!degToRad" }
+    Cos     = { "!cos" }
+    Sin     = { "!sin" }
+BFn = { Min | Max }
+    Min     = { "!min" }
+    Max     = { "!max" }
+
+// Symbols
+Letter = _{ 'a'..'z' | 'A'..'Z'}
+Digit = _{'0'..'9'}
+Under = _{ "_" }
+Float = { ("-")? ~ Number ~ ("." ~ Number)? }
+Word = { Letter~(Letter | Digit | Under)* }
+Number = { '0'..'9'+ }
+WHITESPACE = _{ " " | "\t" | "\r" | "\n"}
+COMMENT = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~(!("\n")~ANY)*~ "\n"? ) }

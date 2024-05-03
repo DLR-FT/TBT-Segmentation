@@ -24,7 +24,7 @@ pub enum Stl {
     Atomic(SubformulaIdx, Vec<String>, ApF),
     Conjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
     Disjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
-    Neg(SubformulaIdx, Box<Stl>),
+    Negation(SubformulaIdx, Box<Stl>),
     Next(SubformulaIdx, Box<Stl>),
     Eventually(SubformulaIdx, Box<Stl>),
     Globally(SubformulaIdx, Box<Stl>),
@@ -49,8 +49,8 @@ impl Stl {
     pub fn disjunction(left_child: Stl, right_child: Stl) -> Self {
         Stl::Disjunction(gfc(), Box::new(left_child), Box::new(right_child))
     }
-    pub fn neg(child: Stl) -> Self {
-        Stl::Neg(gfc(), Box::new(child))
+    pub fn negation(child: Stl) -> Self {
+        Stl::Negation(gfc(), Box::new(child))
     }
     pub fn next(child: Stl) -> Self {
         Stl::Next(gfc(), Box::new(child))
@@ -97,7 +97,7 @@ impl Stl {
                 atomics.append(&mut r_child.get_atomics());
                 atomics
             }
-            Stl::Neg(_, child)
+            Stl::Negation(_, child)
             | Stl::Next(_, child)
             | Stl::Eventually(_, child)
             | Stl::Globally(_, child)
@@ -125,7 +125,7 @@ impl Stl {
             Stl::Disjunction(_, l_child, r_child) => {
                 format!("({} or {})", l_child.pretty_print(), r_child.pretty_print())
             }
-            Stl::Neg(_, child) => format!("!({})", child.pretty_print()),
+            Stl::Negation(_, child) => format!("!({})", child.pretty_print()),
             Stl::Next(_, child) => format!("X({})", child.pretty_print()),
             Stl::Eventually(_, child) => format!("F({})", child.pretty_print()),
             Stl::Globally(_, child) => format!("G({})", child.pretty_print()),
@@ -199,7 +199,7 @@ impl Stl {
                 Stl::Atomic(index, _, _)
                 | Stl::Conjunction(index, _, _)
                 | Stl::Disjunction(index, _, _)
-                | Stl::Neg(index, _)
+                | Stl::Negation(index, _)
                 | Stl::Next(index, _)
                 | Stl::Eventually(index, _)
                 | Stl::Globally(index, _)
@@ -238,7 +238,7 @@ impl Stl {
                     );
                     (v, *index)
                 }
-                Stl::Neg(index, child) => {
+                Stl::Negation(index, child) => {
                     let v = -1.0 * child.evaluate(table, trace, lower, upper, is_lazy);
                     (v, *index)
                 }
@@ -334,5 +334,20 @@ impl Stl {
             }
             v
         }
+    }
+}
+
+impl Stl {
+    pub fn get_string_conjunction() -> String {
+        "&".to_string()
+    }
+    pub fn get_string_disjunction() -> String {
+        "|".to_string()
+    }
+    pub fn get_string_until() -> String {
+        "U".to_string()
+    }
+    pub fn get_string_until_interval() -> String {
+        "IU".to_string()
     }
 }

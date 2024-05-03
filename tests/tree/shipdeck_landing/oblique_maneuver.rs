@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
+use tbt_segmentation::behaviortree::TbtNode;
+use tbt_segmentation::stl::Stl;
+
 use super::atomics::combined::{combined_inpos_ho_va, combined_moveto_ho};
 use super::atomics::constants::Oblique;
 use super::atomics::in_position::in_position;
-use crate::{behaviortree::TbtNode, stl::Stl};
 use std::rc::Rc;
 
 #[allow(dead_code)]

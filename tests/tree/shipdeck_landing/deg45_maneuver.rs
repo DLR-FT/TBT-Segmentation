@@ -1,15 +1,19 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
-use super::atomics::combined::{combined_inpos_ha_va, combined_movetp_ha};
-use super::atomics::constants::Straight;
-use super::atomics::in_position::in_position;
-use crate::{behaviortree::TbtNode, stl::Stl};
 use std::rc::Rc;
+
+use tbt_segmentation::{behaviortree::TbtNode, stl::Stl};
+
+use super::atomics::{
+    combined::{combined_inpos_ha_va, combined_movetp_ha},
+    constants::Deg45,
+    in_position::in_position,
+};
 
 #[allow(dead_code)]
 #[allow(clippy::too_many_arguments)]
-pub fn get_straight_maneuver(
+pub fn get_45deg_maneuver(
     events_per_second: &u64,
     uas_x: &str,
     uas_y: &str,
@@ -39,14 +43,14 @@ pub fn get_straight_maneuver(
             ],
             Rc::new(|arguments| {
                 in_position(
-                    Straight::HeightAboveShip.value(),
-                    Straight::DistanceToShip.value(),
-                    Straight::AngleToShip.value(),
+                    Deg45::HeightAboveShip.value(),
+                    Deg45::DistanceToShip.value(),
+                    Deg45::AngleToShip.value(),
                     arguments,
                 )
             }),
         )),
-        String::from("move_to_position_straight"),
+        String::from("move_to_position_45deg"),
     );
 
     let stay_in_position = TbtNode::leaf(
@@ -72,9 +76,9 @@ pub fn get_straight_maneuver(
                 ],
                 Rc::new(|arguments| {
                     combined_inpos_ha_va(
-                        Straight::HeightAboveShip.value(),
-                        Straight::DistanceToShip.value(),
-                        Straight::AngleToShip.value(),
+                        Deg45::HeightAboveShip.value(),
+                        Deg45::DistanceToShip.value(),
+                        Deg45::AngleToShip.value(),
                         arguments,
                     )
                 }),
@@ -101,7 +105,7 @@ pub fn get_straight_maneuver(
                 ship_w.to_owned(),
                 ship_heading.to_owned(),
             ],
-            Rc::new(|arguments| combined_movetp_ha(Straight::AboveTouchdown.value(), arguments)),
+            Rc::new(|arguments| combined_movetp_ha(Deg45::AboveTouchdown.value(), arguments)),
         )),
         String::from("move_to_touchdown"),
     );

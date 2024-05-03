@@ -1,0 +1,236 @@
+// SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
+// SPDX-License-Identifier: Apache-2.0
+
+Deg45_HeightAboveShip = 20.0;
+Deg45_DistanceToShip = 30.0;
+Deg45_AngleToShip = 135.0;
+Deg45_AboveTouchdown = 20.0;
+
+Lateral_HeightAboveShip = 20.0;
+Lateral_DistanceToShip = 20.0;
+Lateral_AngleToShip = 90.0;
+Lateral_AboveTouchdown = 20.0;
+
+Oblique_HeightAboveShip = 20.0;
+Oblique_DistanceToShip = 30.0;
+Oblique_AngleToShip = 135.0;
+Oblique_AngleOblique = 45.0;
+Oblique_AboveTouchdown = 20.0;
+
+Straight_HeightAboveShip = 20.0;
+Straight_DistanceToShip = 20.0;
+Straight_AngleToShip = 180.0;
+Straight_AboveTouchdown = 20.0;
+
+In_Position_Pos_Slack = 2.5;
+In_Position_HeadingAligned_Slack = 1.0;
+In_Position_HeadingOblique_Slack = 1.0;
+In_Position_Velocity_Slack = 2.0;
+Move_to_Touchdown_Slack = 2.5;
+Descend_Slack = 1.0;
+
+-> (
+? (
+    -> (
+        'move_to_position_45deg' 
+        <>  in_pos(uas_x, uas_y, uas_z, ship_x, ship_y, ship_z, ship_heading)
+            [
+                In_Position_Pos_Slack - 
+                !sqrt(
+                    (ship_x + Deg45_DistanceToShip * !cos(!degToRad(Deg45_AngleToShip) + ship_heading) - uas_x)^2 +
+                    (ship_y + Deg45_DistanceToShip * !sin(!degToRad(Deg45_AngleToShip) + ship_heading) - uas_y)^2 + 
+                    (ship_z + Deg45_HeightAboveShip  - uas_z)^2
+                )
+            ]
+
+        ,
+        'stay_in_position' 
+        [0..5]  combined_inpos_ha_va(uas_x, uas_y, uas_z, uas_u, uas_v, uas_w, uas_heading, ship_x, ship_y, ship_z, ship_u, ship_v, ship_w, ship_heading)
+                [
+                    !min(
+                        In_Position_Pos_Slack - 
+                        !sqrt(
+                            (ship_x + Deg45_DistanceToShip * !cos(!degToRad(Deg45_AngleToShip) + ship_heading) - uas_x)^2 +
+                            (ship_y + Deg45_DistanceToShip * !sin(!degToRad(Deg45_AngleToShip) + ship_heading) - uas_y)^2 + 
+                            (ship_z + Deg45_HeightAboveShip  - uas_z)^2
+                        )
+                        , 
+                        !min(
+                            In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                            , 
+                            In_Position_Velocity_Slack - !abs(!sqrt( uas_u^2 + uas_v^2 + uas_w^2) - !sqrt( ship_u^2 + ship_v^2 + ship_w^2))
+                        )
+                    )
+                ]
+        ,
+        'move_to_touchdown' 
+        <>  combined_movetp_ha(uas_x, uas_y, uas_z, uas_heading, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    !min(
+                        Move_to_Touchdown_Slack - 
+                        !sqrt(
+                            (uas_x - ship_x)^2 +
+                            (uas_y - ship_y)^2 +
+                            (uas_z - (ship_z + Deg45_AboveTouchdown))^2
+                        )
+                    ,
+                        In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                    )
+                ]
+        )    
+    ,
+    -> (
+        'move_to_position_oblique' 
+        <>  in_pos(uas_x, uas_y, uas_z, ship_x, ship_y, ship_z, ship_heading)
+            [
+                In_Position_Pos_Slack - 
+                !sqrt(
+                    (ship_x + Oblique_DistanceToShip * !cos(!degToRad(Oblique_AngleToShip) + ship_heading) - uas_x)^2 +
+                    (ship_y + Oblique_DistanceToShip * !sin(!degToRad(Oblique_AngleToShip) + ship_heading) - uas_y)^2 + 
+                    (ship_z + Oblique_HeightAboveShip  - uas_z)^2
+                )
+            ]
+
+        ,
+        'stay_in_position' 
+        [0..5] combined_inpos_ho_va(uas_x, uas_y, uas_z, uas_u, uas_v, uas_w, uas_heading, ship_x, ship_y, ship_z, ship_u, ship_v, ship_w, ship_heading)
+                [
+                    !min(
+                        In_Position_Pos_Slack - 
+                        !sqrt(
+                            (ship_x + Oblique_DistanceToShip * !cos(!degToRad(Oblique_AngleToShip) + ship_heading) - uas_x)^2 +
+                            (ship_y + Oblique_DistanceToShip * !sin(!degToRad(Oblique_AngleToShip) + ship_heading) - uas_y)^2 + 
+                            (ship_z + Oblique_HeightAboveShip  - uas_z)^2
+                        )
+                    ,
+                        !min(
+                            In_Position_HeadingOblique_Slack - !abs( !abs(!radToDeg(uas_heading - ship_heading)) - Oblique_AngleOblique )
+                        ,
+                            In_Position_Velocity_Slack - !abs(!sqrt( uas_u^2 + uas_v^2 + uas_w^2) - !sqrt( ship_u^2 + ship_v^2 + ship_w^2))
+                        )
+                    )
+                ]
+        ,
+        'move_to_touchdown' 
+        <> move_to_touchdown_oblique(uas_x, uas_y, uas_z, uas_heading, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    !min(
+                        Move_to_Touchdown_Slack - 
+                        !sqrt(
+                            (uas_x - ship_x)^2 +
+                            (uas_y - ship_y)^2 +
+                            (uas_z - (ship_z + Oblique_AboveTouchdown))^2
+                        )
+                    ,
+                        In_Position_HeadingOblique_Slack - !abs( !abs(!radToDeg(uas_heading - ship_heading)) - Oblique_AngleOblique )
+                    )
+                ]
+        )    
+    ,
+        -> (
+            'move_to_position_lateral' 
+            <>  in_pos(uas_x, uas_y, uas_z, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    In_Position_Pos_Slack - 
+                    !sqrt(
+                        (ship_x + Lateral_DistanceToShip * !cos(!degToRad(Lateral_AngleToShip) + ship_heading) - uas_x)^2 +
+                        (ship_y + Lateral_DistanceToShip * !sin(!degToRad(Lateral_AngleToShip) + ship_heading) - uas_y)^2 + 
+                        (ship_z + Lateral_HeightAboveShip  - uas_z)^2
+                    )
+                ]
+
+            ,
+            'stay_in_position' 
+            [0..5] combined_inpos_ha_va(uas_x, uas_y, uas_z, uas_u, uas_v, uas_w, uas_heading, ship_x, ship_y, ship_z, ship_u, ship_v, ship_w, ship_heading)
+                [
+                    !min(
+                        In_Position_Pos_Slack - 
+                        !sqrt(
+                            (ship_x + Lateral_DistanceToShip * !cos(!degToRad(Lateral_AngleToShip) + ship_heading) - uas_x)^2 +
+                            (ship_y + Lateral_DistanceToShip * !sin(!degToRad(Lateral_AngleToShip) + ship_heading) - uas_y)^2 + 
+                            (ship_z + Lateral_HeightAboveShip  - uas_z)^2
+                        )
+                        , 
+                        !min(
+                            In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                            , 
+                            In_Position_Velocity_Slack - !abs(!sqrt( uas_u^2 + uas_v^2 + uas_w^2) - !sqrt( ship_u^2 + ship_v^2 + ship_w^2))
+                        )
+                    )
+                ]
+            ,
+            'move_to_touchdown' 
+            <> combined_movetp_ha(uas_x, uas_y, uas_z, uas_heading, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    !min(
+                        Move_to_Touchdown_Slack - 
+                        !sqrt(
+                            (uas_x - ship_x)^2 +
+                            (uas_y - ship_y)^2 +
+                            (uas_z - (ship_z + Lateral_AboveTouchdown))^2
+                        )
+                    ,
+                        In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                    )
+                ]
+        )  
+    ,
+        -> (
+            'move_to_position_straight' 
+            <> in_pos(uas_x, uas_y, uas_z, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    In_Position_Pos_Slack - 
+                    !sqrt(
+                        (ship_x + Straight_DistanceToShip * !cos(!degToRad(Straight_AngleToShip) + ship_heading) - uas_x)^2 +
+                        (ship_y + Straight_DistanceToShip * !sin(!degToRad(Straight_AngleToShip) + ship_heading) - uas_y)^2 + 
+                        (ship_z + Straight_HeightAboveShip  - uas_z)^2
+                    )
+                ]
+            ,
+            'stay_in_position' 
+            [0..5] combined_inpos_ha_va(uas_x, uas_y, uas_z, uas_u, uas_v, uas_w, uas_heading, ship_x, ship_y, ship_z, ship_u, ship_v, ship_w, ship_heading)
+                [
+                    !min(
+                        In_Position_Pos_Slack - 
+                        !sqrt(
+                            (ship_x + Straight_DistanceToShip * !cos(!degToRad(Straight_AngleToShip) + ship_heading) - uas_x)^2 +
+                            (ship_y + Straight_DistanceToShip * !sin(!degToRad(Straight_AngleToShip) + ship_heading) - uas_y)^2 + 
+                            (ship_z + Straight_HeightAboveShip  - uas_z)^2
+                        )
+                        , 
+                        !min(
+                            In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                            , 
+                            In_Position_Velocity_Slack - !abs(!sqrt( uas_u^2 + uas_v^2 + uas_w^2) - !sqrt( ship_u^2 + ship_v^2 + ship_w^2))
+                        )
+                    )
+                ]
+            ,
+            'move_to_touchdown' 
+            <> combined_movetp_ha(uas_x, uas_y, uas_z, uas_heading, ship_x, ship_y, ship_z, ship_heading)
+                [
+                    !min(
+                        Move_to_Touchdown_Slack - 
+                        !sqrt(
+                            (uas_x - ship_x)^2 +
+                            (uas_y - ship_y)^2 +
+                            (uas_z - (ship_z + Straight_AboveTouchdown))^2
+                        )
+                    ,
+                        In_Position_HeadingAligned_Slack - !abs(!radToDeg(uas_heading - ship_heading))
+                    )
+                ]
+        )   
+)
+,
+    'descend' 
+    <> descend(uas_x, uas_y, uas_z, ship_x, ship_y, ship_z)
+        [
+            Descend_Slack - 
+            !sqrt(
+                (uas_x - ship_x)^2 +
+                (uas_y - ship_y)^2 +
+                (uas_z - ship_z )^2
+            )
+        ]
+)

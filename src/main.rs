@@ -16,13 +16,18 @@ fn main() {
     /**********************************
      * Get best number skipped entries
      **********************************/
-    let (number_skipped_entries, delta_rho_skipped) =
-        get_best_number_skipped_entries(&arguments.logfile, arguments.sub_sampling);
+    let (number_skipped_entries, delta_rho_skipped) = get_best_number_skipped_entries(
+        &arguments.specification,
+        &arguments.logfile,
+        arguments.sub_sampling,
+    );
 
     /*******************
      * STARTUP ROUTINES
      *******************/
+
     let (trace, tbt) = get_tbt_and_trace(
+        &arguments.specification,
         &arguments.logfile,
         number_skipped_entries,
         arguments.lazy_evaluation,
