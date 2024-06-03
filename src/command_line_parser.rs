@@ -4,6 +4,7 @@
 pub struct CommandLineArguments {
     pub specification: String,
     pub logfile: String,
+    pub toml: Option<String>,
     pub lazy_evaluation: bool,
     pub sub_sampling: bool,
     pub debug_console: bool,
@@ -22,6 +23,7 @@ impl CommandLineArguments {
     fn new(
         specification: String,
         logfile: String,
+        toml: Option<String>,
         lazy_evaluation: bool,
         sub_sampling: bool,
         debug_console: bool,
@@ -31,6 +33,7 @@ impl CommandLineArguments {
         CommandLineArguments {
             specification,
             logfile,
+            toml,
             lazy_evaluation,
             sub_sampling,
             debug_console,
@@ -61,6 +64,12 @@ pub fn parse_command_line() -> CommandLineArguments {
         .takes_value(true)
         .value_name("FILE")
         .help("Get logfile location");
+    let toml = clap::Arg::with_name("toml")
+        .required(false)
+        .long("toml")
+        .takes_value(true)
+        .value_name("FILE")
+        .help("Create xml output file (e.g., tbt_seg_out.toml)");
     let lazy_evaluation = clap::Arg::with_name("lazy_evaluation")
         .required(false)
         .short("l")
@@ -112,6 +121,7 @@ pub fn parse_command_line() -> CommandLineArguments {
     let app = app
         .arg(specification)
         .arg(logfile)
+        .arg(toml)
         .arg(lazy_evaluation)
         .arg(sub_sampling)
         .arg(debugging)
@@ -130,6 +140,7 @@ pub fn parse_command_line() -> CommandLineArguments {
         .value_of("logfile")
         .expect("This can't be None, since it is required")
         .to_string();
+    let toml = matches.value_of("toml").map(|s| s.to_string());
     let lazy_evaluation = matches.is_present("lazy_evaluation");
     let sub_sampling = matches.is_present("sub_sampling");
     let debug_console = matches.is_present("debugging");
@@ -162,6 +173,7 @@ pub fn parse_command_line() -> CommandLineArguments {
     CommandLineArguments::new(
         specification,
         logfile,
+        toml,
         lazy_evaluation,
         sub_sampling,
         debug_console,

@@ -65,6 +65,8 @@ We can also replay the flight by, e.g.,  ``python visualize_ship_landing.py live
 
 For more information call ``python visualize_ship_landing.py --help``.
 
+> Using ``--toml <FILE>`` as command-line-argument generates a .toml-file for the computed segmentations.
+
 ## Folder Structure
 - [figs](figs) are resources used for this readme document
 - [res](res) contains the logfiles used in the HSCC paper
@@ -89,6 +91,7 @@ For more information call ``python visualize_ship_landing.py --help``.
     - [functions.rs](src/functions.rs) is used to represent atomic functions that are used by the TBT parser
     - [parser.rs](src/parser.rs) is a TBT parser that reads a .tbt-file and produces a ```Tree```
     - [tbt.pest](src/tbt.pest) represents the grammar used by the TBT parser
+    - [toml_out.rs](src/toml_out.rs) is used to produce a .toml-file
     - [csv_reader.rs](src/csv_reader.rs) represent auxiliary functions such as reading a csv-file
     - [table.rs](src/table.rs) represents the main data structure for the dynamic programming
     - [user_defined/](src/user_defined/) is an example implementation for the *UserProvidedFunctions* required by [lib.rs](src/lib.rs)

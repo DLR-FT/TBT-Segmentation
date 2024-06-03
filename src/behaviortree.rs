@@ -6,7 +6,7 @@ use std::{collections::HashMap, time::SystemTime};
 
 type SubtreeIdx = usize;
 pub type Segmentation<'a> = Vec<(&'a TbtNode, usize, usize, f32)>;
-pub type ClonedSegmentation = Vec<(TbtNode, usize, usize, f32)>;
+pub type ClonedSegmentation = (f32, Vec<(TbtNode, usize, usize, f32)>);
 static mut NODECOUNT: SubtreeIdx = 0;
 /// Gets formula count
 fn gnc() -> SubtreeIdx {
@@ -121,7 +121,7 @@ pub enum TbtNode {
 #[allow(dead_code)]
 impl TbtNode {
     /// Returns the index of a TBT node
-    fn get_index(&self) -> SubtreeIdx {
+    pub fn get_index(&self) -> SubtreeIdx {
         match self {
             TbtNode::Leaf(index, _, _)
             | TbtNode::Fallback(index, _)
@@ -1233,7 +1233,7 @@ impl TbtNode {
         rho_dif: f32,
         number: usize,
         print_leaf_segments_only: bool,
-    ) -> Vec<(usize, Segmentation)> {
+    ) -> Vec<(f32, (usize, Segmentation))> {
         println!("\n\nAlternatives:");
         let mut res_segmentation = Vec::new();
         let mut segmentations = vec![best_segmentation.to_vec()];
@@ -1253,7 +1253,7 @@ impl TbtNode {
                 print_segmentation(&segmentation.1, print_leaf_segments_only, false);
             println!("Segmentation with remaining tau difference of {} and robustness of {robustness_value} is:\n{segmentation_str}", segmentation.0);
             segmentations.push(segmentation.1.to_vec());
-            res_segmentation.push(segmentation);
+            res_segmentation.push((robustness_value, segmentation));
         }
         res_segmentation
     }
