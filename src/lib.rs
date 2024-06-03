@@ -11,6 +11,7 @@ mod functions;
 mod parser;
 pub mod stl;
 mod table;
+mod toml_out;
 use behaviortree::print_segmentation;
 use behaviortree::tbt_node_reset_count;
 use behaviortree::ClonedSegmentation;
@@ -29,6 +30,7 @@ use std::time::SystemTime;
 use stl::stl_reset_count;
 use stl::Stl;
 use table::Table;
+use toml_out::generate_toml;
 
 /*
  * This trait must be implemented by the user.
@@ -151,7 +153,7 @@ pub fn evaluate(
     print_leaf_segments_only: bool,
     segmentation_setting: Option<SegmentationSetting>,
     debug: bool,
-) -> (f32, ClonedSegmentation, Option<Vec<ClonedSegmentation>>) {
+) -> (ClonedSegmentation, Option<Vec<ClonedSegmentation>>) {
     // MEMORY ALLOCATIONS
     let mut tree_table = Table::new(Tbt::get_number_nodes(), trace.0);
     println!(
@@ -216,7 +218,7 @@ pub fn evaluate(
         .into_iter()
         .map(|(node, lower, upper, robustness)| (node.clone(), lower, upper, robustness))
         .collect();
-    (robustness_res, segmentation, alternative_segmentations)
+    ((robustness_res, segmentation), alternative_segmentations)
 }
 
 /***********************
@@ -308,10 +310,23 @@ pub fn get_alternative_segmentation(
     );
     other_segmentations
         .into_iter()
-        .map(|(_, v)| {
-            v.into_iter()
-                .map(|(node, lower, upper, robustness)| (node.clone(), lower, upper, robustness))
-                .collect()
+        .map(|(rho, (_, v))| {
+            (
+                rho,
+                v.into_iter()
+                    .map(|(node, lower, upper, robustness)| {
+                        (node.clone(), lower, upper, robustness)
+                    })
+                    .collect(),
+            )
         })
         .collect()
+}
+
+pub fn generate_toml_output_file(
+    location: String,
+    best_segmentation: ClonedSegmentation,
+    alternative_segmentation: Option<Vec<ClonedSegmentation>>,
+) -> std::io::Result<()> {
+    generate_toml(location, best_segmentation, alternative_segmentation)
 }

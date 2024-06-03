@@ -3,7 +3,8 @@
 
 use std::time::SystemTime;
 use tbt_segmentation::{
-    evaluate, get_best_number_skipped_entries, get_tbt_and_trace, parse_command_line,
+    evaluate, generate_toml_output_file, get_best_number_skipped_entries, get_tbt_and_trace,
+    parse_command_line,
 };
 
 fn main() {
@@ -37,7 +38,7 @@ fn main() {
     /*********************
      * Evaluation
      *********************/
-    evaluate(
+    let (best_segmentation, alternative_segmentations) = evaluate(
         tbt,
         trace,
         start,
@@ -48,6 +49,22 @@ fn main() {
         arguments.segmentation_setting,
         arguments.debug_console,
     );
+
+    /*********************
+     * Create XML file
+     *********************/
+
+    if let Some(toml_output_location) = arguments.toml {
+        println!("Generating toml file: {}", toml_output_location);
+        match generate_toml_output_file(
+            toml_output_location,
+            best_segmentation,
+            alternative_segmentations,
+        ) {
+            Ok(_) => println!("Successfully generated toml file."),
+            Err(_) => println!("Failed to generate toml file."),
+        };
+    }
 
     /*********************
      * Finish Execution
