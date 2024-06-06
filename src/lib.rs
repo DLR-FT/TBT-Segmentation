@@ -325,8 +325,14 @@ pub fn get_alternative_segmentation(
 
 pub fn generate_toml_output_file(
     location: String,
+    number_skipped_entries: usize,
     best_segmentation: ClonedSegmentation,
     alternative_segmentation: Option<Vec<ClonedSegmentation>>,
 ) -> std::io::Result<()> {
-    generate_toml(location, best_segmentation, alternative_segmentation)
+    generate_toml(
+        location,
+        number_skipped_entries,
+        best_segmentation,
+        alternative_segmentation,
+    )
 }
