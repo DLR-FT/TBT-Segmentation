@@ -58,6 +58,7 @@ fn main() {
         println!("Generating toml file: {}", toml_output_location);
         match generate_toml_output_file(
             toml_output_location,
+            number_skipped_entries,
             best_segmentation,
             alternative_segmentations,
         ) {

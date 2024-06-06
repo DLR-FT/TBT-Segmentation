@@ -26,6 +26,7 @@ struct NamedSegmentation(String, TomlSegmentation);
 
 #[derive(Serialize)]
 struct TomlSegmentation {
+    delta: usize,
     robustness: f32,
     segments: Vec<Segment>,
 }
@@ -37,16 +38,25 @@ struct Segmentations {
 
 pub fn generate_toml(
     location: String,
+    delta: usize,
     best_segmentation: ClonedSegmentation,
     alternative_segmentation: Option<Vec<ClonedSegmentation>>,
 ) -> std::io::Result<()> {
     let mut segmentations = Vec::<NamedSegmentation>::new();
     // Adding best segmentation
-    segmentations.push(read_segmentation(best_segmentation, "best".to_string()));
+    segmentations.push(read_segmentation(
+        best_segmentation,
+        delta,
+        "best".to_string(),
+    ));
     // Adding the alternative segmentations
     if let Some(alternatives) = alternative_segmentation {
         alternatives.into_iter().enumerate().for_each(|(i, seg)| {
-            segmentations.push(read_segmentation(seg, format!("alternative_{}", i + 1)))
+            segmentations.push(read_segmentation(
+                seg,
+                delta,
+                format!("alternative_{}", i + 1),
+            ))
         })
     }
     let all_segmentations = Segmentations { segmentations };
@@ -59,6 +69,7 @@ pub fn generate_toml(
 
 fn read_segmentation(
     segmentation: (f32, Vec<(crate::behaviortree::TbtNode, usize, usize, f32)>),
+    delta: usize,
     name: String,
 ) -> NamedSegmentation {
     let mut segments = Vec::<Segment>::new();
@@ -78,6 +89,7 @@ fn read_segmentation(
     NamedSegmentation(
         name,
         TomlSegmentation {
+            delta,
             robustness: segmentation.0,
             segments,
         },

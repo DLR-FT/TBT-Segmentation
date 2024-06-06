@@ -43,7 +43,7 @@ fn run_test(
 ) -> Result<(), String> {
     for (trace, expected) in traces_with_expected_value {
         let trace: Trace = (trace.len(), HashMap::from([(signal_name.clone(), trace)]));
-        let robustness = evaluate(
+        let ((robustness, _), _) = evaluate(
             tbt.clone(),
             trace,
             SystemTime::now(),
@@ -54,10 +54,10 @@ fn run_test(
             None,
             false,
         );
-        if robustness.0 == expected {
+        if robustness == expected {
             continue;
         } else {
-            return Err(format!("Expected {expected} but was {}.", robustness.0));
+            return Err(format!("Expected {expected} but was {}.", robustness));
         }
     }
     Ok(())
@@ -87,7 +87,7 @@ fn test_hardcoded_maneuver(specification: &str, logfile: &str) {
     let setting_2 = setting.clone();
     let start = SystemTime::now();
     println!("Run using parsed tbt!");
-    let first_run = evaluate(
+    let (first_run, first_run_alt) = evaluate(
         new_tbt,
         trace,
         start,
@@ -99,7 +99,7 @@ fn test_hardcoded_maneuver(specification: &str, logfile: &str) {
         false,
     );
     println!("Run using hand-coded tbt!");
-    let second_run = evaluate(
+    let (second_run, second_run_alt) = evaluate(
         old_tbt,
         trace_2,
         start,
@@ -140,12 +140,15 @@ fn test_hardcoded_maneuver(specification: &str, logfile: &str) {
             v2.3
         );
     }
-    let alternatives_new = first_run.2.unwrap();
-    let alternatives_old = second_run.2.unwrap();
+    let alternatives_new = first_run_alt.unwrap();
+    let alternatives_old = second_run_alt.unwrap();
     for j in 0..alternatives_new.len() {
-        for i in 0..first_run.1.len() {
-            let v1 = &alternatives_new[j][i];
-            let v2 = &alternatives_old[j][i];
+        let alt_new = &alternatives_new[j];
+        let alt_old = &alternatives_old[j];
+        assert_eq!(alt_new.0, alt_old.0);
+        for i in 0..alt_old.1.len() {
+            let v1 = &alt_new.1[i];
+            let v2 = &alt_old.1[i];
             assert!(
                 v1.1 == v2.1,
                 "Entry of alternatives i={i} j={j} is expected to have same lower but wasnt {} != {}",
