@@ -30,7 +30,7 @@ Therefore, they can be easily retrofitted to existing behavior trees.
 For instance, consider the following behavior tree that specifies the landing sequence of an unmanned aircraft (1) *move to position*, (2) *stay in position*, (3) *move to touchdown*, and (4) *descend*:
 
 <p align="center">
-<img src="figs/BehaviorTree.JPG" width="400">
+<img src="https://github.com/DLR-FT/TBT-Segmentation/blob/main/figs/BehaviorTree.JPG" width="400">
 </p>
 
 Given such a TBT specification and a trace, i.e., a sequence of events of a system, we can compute the corresponding robustness.
@@ -43,7 +43,7 @@ Such a segmentation then helps to better explain which portions of the specifica
 It is also useful to visualize the resulting segmentation, as shown below for the landing maneuver:
 
 <p align="center">
-<img src="figs/Segmentation.png" width="400">
+<img src="https://github.com/DLR-FT/TBT-Segmentation/blob/main/figs/Segmentation.png" width="400">
 </p>
 
 ## Getting Started
