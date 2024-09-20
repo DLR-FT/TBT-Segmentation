@@ -3,6 +3,7 @@ SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 
 SPDX-License-Identifier: CC-BY-NC-ND-4.0
 -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13807484.svg)](https://doi.org/10.5281/zenodo.13807484)
 
 > This tool is based on the paper [Temporal Behavior Trees: Robustness and Segmentation](https://doi.org/10.1145/3641513.3650180) and its companion poster [Temporal Behavior Trees - Segmentation](https://doi.org/10.1145/3641513.3652534), which were published at [HSCC'24](https://hscc.acm.org/2024/).
 
