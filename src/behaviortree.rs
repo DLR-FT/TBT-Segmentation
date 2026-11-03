@@ -4,7 +4,7 @@
 use crate::{stl::Stl, table::Table, Trace};
 use std::{collections::HashMap, time::SystemTime};
 
-type SubtreeIdx = usize;
+pub type SubtreeIdx = usize;
 pub type Segmentation<'a> = Vec<(&'a TbtNode, usize, usize, f32)>;
 pub type ClonedSegmentation = (f32, Vec<(TbtNode, usize, usize, f32)>);
 static mut NODECOUNT: SubtreeIdx = 0;
