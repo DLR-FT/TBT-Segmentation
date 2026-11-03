@@ -48,7 +48,7 @@ pub fn parse_command_line() -> CommandLineArguments {
     let app = clap::App::new("Temporal Behavior Trees")
         .version("0.1.0")
         .about("Computes robustness and segmentation.")
-        .author(clap::crate_authors!("\n"));
+        .author(env!("CARGO_PKG_AUTHORS"));
     // Define the name command line option
     let specification = clap::Arg::with_name("specification")
         .required(true)
