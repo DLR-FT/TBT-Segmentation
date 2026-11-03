@@ -8,7 +8,6 @@ use pest_derive::Parser;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
-    rc::Rc,
 };
 
 #[derive(Parser)]
@@ -307,13 +306,12 @@ fn parse_stl_element(
                     arguments_span,
                 ))
             } else {
-                // build closure
+                // build proposition
                 assert!(p.peek().unwrap().as_rule() == Rule::Function);
                 let func = parse_fn(p.next().unwrap(), &value_names, constant_map)?;
                 let print_fn = func.clone();
-                let f = Rc::new(move |values: &[f32]| func.eval(values));
                 let value_names_cpy = value_names.clone();
-                let ap = Stl::atomic(value_names, f);
+                let ap = Stl::atomic_expr(value_names, func);
                 if let Stl::Atomic(i, _, _) = ap {
                     if use_prints {
                         println!(

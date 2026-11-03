@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
+pub use crate::functions::Func;
 use crate::{table::Table, ApF, Trace};
 use std::collections::HashMap;
 
@@ -21,7 +22,7 @@ pub fn stl_reset_count() {
 #[allow(dead_code)]
 /// STL Syntax
 pub enum Stl {
-    Atomic(SubformulaIdx, Vec<String>, ApF),
+    Atomic(SubformulaIdx, Vec<String>, AtomicProposition),
     Conjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
     Disjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
     Negation(SubformulaIdx, Box<Stl>),
@@ -34,6 +35,30 @@ pub enum Stl {
     UntilInterval(SubformulaIdx, usize, usize, Box<Stl>, Box<Stl>),
 }
 
+/// The atomic proposition, either a parsed expression or a user defined function
+#[derive(Clone)]
+pub enum AtomicProposition {
+    Expr(Func),
+    Closure(ApF),
+}
+
+impl AtomicProposition {
+    /// Returns the parsed expression, if the proposition is not user defined
+    pub fn expression(&self) -> Option<&Func> {
+        match self {
+            AtomicProposition::Expr(expression) => Some(expression),
+            AtomicProposition::Closure(_) => None,
+        }
+    }
+
+    pub fn eval(&self, values: &[f32]) -> f32 {
+        match self {
+            AtomicProposition::Expr(expression) => expression.eval(values),
+            AtomicProposition::Closure(function) => function(values),
+        }
+    }
+}
+
 /// STL Constructors
 #[allow(dead_code)]
 impl Stl {
@@ -41,7 +66,10 @@ impl Stl {
         unsafe { FORMULACOUNT }
     }
     pub fn atomic(name: Vec<String>, f: ApF) -> Self {
-        Stl::Atomic(gfc(), name, f)
+        Stl::Atomic(gfc(), name, AtomicProposition::Closure(f))
+    }
+    pub fn atomic_expr(name: Vec<String>, expression: Func) -> Self {
+        Stl::Atomic(gfc(), name, AtomicProposition::Expr(expression))
     }
     pub fn conjunction(left_child: Stl, right_child: Stl) -> Self {
         Stl::Conjunction(gfc(), Box::new(left_child), Box::new(right_child))
@@ -164,7 +192,7 @@ impl Stl {
         names: &Vec<String>,
         trace: &(usize, HashMap<String, Vec<f32>>),
         lower: usize,
-        function: &ApF,
+        function: &AtomicProposition,
     ) -> f32 {
         let mut values = Vec::<f32>::new();
         for name in names {
@@ -175,7 +203,7 @@ impl Stl {
             };
             values.push(v);
         }
-        function(&values)
+        function.eval(&values)
     }
 
     /// Compute the robustness verdict of an STL formula
