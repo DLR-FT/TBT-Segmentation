@@ -309,15 +309,16 @@ fn parse_stl_element(
                 // build proposition
                 assert!(p.peek().unwrap().as_rule() == Rule::Function);
                 let func = parse_fn(p.next().unwrap(), &value_names, constant_map)?;
-                let print_fn = func.clone();
                 let value_names_cpy = value_names.clone();
                 let ap = Stl::atomic_expr(value_names, func);
-                if let Stl::Atomic(i, _, _) = ap {
+                if let Stl::Atomic(i, _, proposition) = &ap {
                     if use_prints {
-                        println!(
-                            "AP({i}) {function_name} ({:?}): {}\n",
-                            value_names_cpy, print_fn
-                        );
+                        if let Some(expression) = proposition.expression() {
+                            println!(
+                                "AP({i}) {function_name} ({:?}): {}\n",
+                                value_names_cpy, expression
+                            );
+                        }
                     }
                 }
                 Ok(ap)

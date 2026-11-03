@@ -3,7 +3,6 @@
 
 pub use crate::functions::Func;
 use crate::{table::Table, ApF, Trace};
-use std::collections::HashMap;
 
 type SubformulaIdx = usize;
 
@@ -183,17 +182,15 @@ impl Stl {
 impl Stl {
     /// Auxiliary function to evaluate an atomic proposition A := f(x) given a trace
     /// # Arguments
-    /// * `names` - States the variables that are used by the f(x)
     /// * `trace` - Provides a Trace ( trace index -> ( String -> trace entries))
     /// * `lower` - Position in trace that is considered (note that AP only rely on present position)
-    /// * `function` - function that is called
-    pub fn evaluate_fnc(
-        &self,
-        names: &Vec<String>,
-        trace: &(usize, HashMap<String, Vec<f32>>),
-        lower: usize,
-        function: &AtomicProposition,
-    ) -> f32 {
+    /// # Panics
+    /// Panics if the formula is not an atomic proposition
+    pub fn evaluate_fnc(&self, trace: &Trace, lower: usize) -> f32 {
+        let (names, proposition) = match self {
+            Stl::Atomic(_, names, proposition) => (names, proposition),
+            _ => panic!("evaluate_fnc is only defined for atomic propositions"),
+        };
         let mut values = Vec::<f32>::new();
         for name in names {
             let trace_for_atomic = trace.1.get(name).unwrap();
@@ -203,7 +200,7 @@ impl Stl {
             };
             values.push(v);
         }
-        function.eval(&values)
+        proposition.eval(&values)
     }
 
     /// Compute the robustness verdict of an STL formula
@@ -244,9 +241,9 @@ impl Stl {
             value
         } else {
             let (v, index) = match self {
-                Stl::Atomic(index, names, function) => {
+                Stl::Atomic(index, _, _) => {
                     let v = if lower <= upper {
-                        self.evaluate_fnc(names, trace, lower, function)
+                        self.evaluate_fnc(trace, lower)
                     } else {
                         f32::NEG_INFINITY
                     };
