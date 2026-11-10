@@ -340,13 +340,15 @@ impl Stl {
                 }
                 Stl::UntilInterval(index, l, u, l_child, r_child) => {
                     let mut v: f32 = f32::NEG_INFINITY;
+                    let mut prefix_min: f32 = f32::INFINITY;
                     let u = usize::min(upper, *u);
                     for i in *l..(u + 1) {
                         let mut min_v = r_child.evaluate(table, trace, lower + i, upper, is_lazy);
-                        for j in *l..i {
-                            let l_v = l_child.evaluate(table, trace, lower + j, upper, is_lazy);
-                            min_v = f32::min(min_v, l_v);
-                        }
+                        min_v = f32::min(min_v, prefix_min);
+                        prefix_min = f32::min(
+                            prefix_min,
+                            l_child.evaluate(table, trace, lower + i, upper, is_lazy),
+                        );
                         v = f32::max(v, min_v);
                         if is_lazy && v > 0.0 {
                             break;
