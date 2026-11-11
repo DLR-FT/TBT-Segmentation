@@ -75,8 +75,8 @@ pub fn get_best_number_skipped(trace: Trace, tree: TbtNode) -> (usize, (f32, f32
         let mut neg_interval_values = (f32::MAX, f32::MIN);
         let mut neg_count = 0_usize;
         for i in 0..trace.0 {
-            if let Stl::Atomic(_, names, function) = ap {
-                let v = ap.evaluate_fnc(names, &trace, i, function);
+            if let Stl::Atomic(..) = ap {
+                let v = ap.evaluate_fnc(&trace, i);
                 // Positive values
                 if v >= 0.0 {
                     pos_count += 1;

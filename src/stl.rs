@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 German Aerospace Center (DLR)
 // SPDX-License-Identifier: Apache-2.0
 
+pub use crate::functions::Func;
 use crate::{table::Table, ApF, Trace};
-use std::collections::HashMap;
 
 type SubformulaIdx = usize;
 
@@ -21,7 +21,7 @@ pub fn stl_reset_count() {
 #[allow(dead_code)]
 /// STL Syntax
 pub enum Stl {
-    Atomic(SubformulaIdx, Vec<String>, ApF),
+    Atomic(SubformulaIdx, Vec<String>, AtomicProposition),
     Conjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
     Disjunction(SubformulaIdx, Box<Stl>, Box<Stl>),
     Negation(SubformulaIdx, Box<Stl>),
@@ -34,6 +34,30 @@ pub enum Stl {
     UntilInterval(SubformulaIdx, usize, usize, Box<Stl>, Box<Stl>),
 }
 
+/// The atomic proposition, either a parsed expression or a user defined function
+#[derive(Clone)]
+pub enum AtomicProposition {
+    Expr(Func),
+    Closure(ApF),
+}
+
+impl AtomicProposition {
+    /// Returns the parsed expression, if the proposition is not user defined
+    pub fn expression(&self) -> Option<&Func> {
+        match self {
+            AtomicProposition::Expr(expression) => Some(expression),
+            AtomicProposition::Closure(_) => None,
+        }
+    }
+
+    pub fn eval(&self, values: &[f32]) -> f32 {
+        match self {
+            AtomicProposition::Expr(expression) => expression.eval(values),
+            AtomicProposition::Closure(function) => function(values),
+        }
+    }
+}
+
 /// STL Constructors
 #[allow(dead_code)]
 impl Stl {
@@ -41,7 +65,10 @@ impl Stl {
         unsafe { FORMULACOUNT }
     }
     pub fn atomic(name: Vec<String>, f: ApF) -> Self {
-        Stl::Atomic(gfc(), name, f)
+        Stl::Atomic(gfc(), name, AtomicProposition::Closure(f))
+    }
+    pub fn atomic_expr(name: Vec<String>, expression: Func) -> Self {
+        Stl::Atomic(gfc(), name, AtomicProposition::Expr(expression))
     }
     pub fn conjunction(left_child: Stl, right_child: Stl) -> Self {
         Stl::Conjunction(gfc(), Box::new(left_child), Box::new(right_child))
@@ -155,17 +182,15 @@ impl Stl {
 impl Stl {
     /// Auxiliary function to evaluate an atomic proposition A := f(x) given a trace
     /// # Arguments
-    /// * `names` - States the variables that are used by the f(x)
     /// * `trace` - Provides a Trace ( trace index -> ( String -> trace entries))
     /// * `lower` - Position in trace that is considered (note that AP only rely on present position)
-    /// * `function` - function that is called
-    pub fn evaluate_fnc(
-        &self,
-        names: &Vec<String>,
-        trace: &(usize, HashMap<String, Vec<f32>>),
-        lower: usize,
-        function: &ApF,
-    ) -> f32 {
+    /// # Panics
+    /// Panics if the formula is not an atomic proposition
+    pub fn evaluate_fnc(&self, trace: &Trace, lower: usize) -> f32 {
+        let (names, proposition) = match self {
+            Stl::Atomic(_, names, proposition) => (names, proposition),
+            _ => panic!("evaluate_fnc is only defined for atomic propositions"),
+        };
         let mut values = Vec::<f32>::new();
         for name in names {
             let trace_for_atomic = trace.1.get(name).unwrap();
@@ -175,7 +200,7 @@ impl Stl {
             };
             values.push(v);
         }
-        function(&values)
+        proposition.eval(&values)
     }
 
     /// Compute the robustness verdict of an STL formula
@@ -216,9 +241,9 @@ impl Stl {
             value
         } else {
             let (v, index) = match self {
-                Stl::Atomic(index, names, function) => {
+                Stl::Atomic(index, _, _) => {
                     let v = if lower <= upper {
-                        self.evaluate_fnc(names, trace, lower, function)
+                        self.evaluate_fnc(trace, lower)
                     } else {
                         f32::NEG_INFINITY
                     };

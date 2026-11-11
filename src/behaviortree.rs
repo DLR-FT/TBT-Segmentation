@@ -4,7 +4,7 @@
 use crate::{stl::Stl, table::Table, Trace};
 use std::{collections::HashMap, time::SystemTime};
 
-type SubtreeIdx = usize;
+pub type SubtreeIdx = usize;
 pub type Segmentation<'a> = Vec<(&'a TbtNode, usize, usize, f32)>;
 pub type ClonedSegmentation = (f32, Vec<(TbtNode, usize, usize, f32)>);
 static mut NODECOUNT: SubtreeIdx = 0;
@@ -130,6 +130,54 @@ impl TbtNode {
             | TbtNode::Timeout(index, _, _)
             | TbtNode::Kleene(index, _, _, _) => *index,
         }
+    }
+
+    /// Returns the lowest common ancestor of all given nodes, if all of them are part of this tree
+    pub fn get_common_ancestor(&self, node_ids: &[SubtreeIdx]) -> Option<&TbtNode> {
+        let mut common_path = Vec::new();
+        if !self.get_path(*node_ids.first()?, &mut common_path) {
+            return None;
+        }
+
+        for node in node_ids.iter().skip(1) {
+            let mut path = Vec::new();
+            if !self.get_path(*node, &mut path) {
+                return None;
+            }
+            let shared = common_path
+                .iter()
+                .zip(&path)
+                .take_while(|(a, b)| a.get_index() == b.get_index())
+                .count();
+            common_path.truncate(shared);
+        }
+        common_path.last().copied()
+    }
+
+    /// Collects the path from this node to the node with the given index, returns whether it was found
+    pub fn get_path<'a>(&'a self, index: SubtreeIdx, path: &mut Vec<&'a TbtNode>) -> bool {
+        path.push(self);
+        let found = self.get_index() == index
+            || match self {
+                TbtNode::Leaf(_, _, _) => false,
+                TbtNode::Fallback(_, children) | TbtNode::Parallel(_, _, children) => {
+                    children.iter().any(|child| child.get_path(index, path))
+                }
+                TbtNode::Sequence(_, left, right) => {
+                    left.get_path(index, path) || right.get_path(index, path)
+                }
+                TbtNode::Timeout(_, _, child) => child.get_path(index, path),
+                TbtNode::Kleene(_, _, next, child) => {
+                    child.get_path(index, path)
+                        || next
+                            .as_ref()
+                            .is_some_and(|node| node.get_path(index, path))
+                }
+            };
+        if !found {
+            path.pop();
+        }
+        found
     }
 
     /// Recursive call until first leaf node it found
