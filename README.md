@@ -206,10 +206,6 @@ is the beginning of the segmentation. The following lines provide information on
 represent one segment.
 It states that the leaf node `move_to_position_lateral` was assigned to the segment that begins at index 0 and ends at index 78. 
 Further its robustness value is 0.31, i.e., the trace segment did satisfy this node.
-
-
-## Contributors
-- Sebastian Schirmer
   
 ## Contributing
 
