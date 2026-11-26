@@ -16,7 +16,6 @@ SPDX-License-Identifier: CC-BY-NC-ND-4.0
   - [Brief Summary of the Supported Operators](#brief-summary-of-the-supported-operators)
   - [Docker Environment](#docker-environment)
   - [How to Interpret the Output Format](#how-to-interpret-the-output-format)
-  - [Contributors](#contributors)
   - [Contributing](#contributing)
   - [Changes](#changes)
   - [License](#license)
